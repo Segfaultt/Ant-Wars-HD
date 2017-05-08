@@ -24,6 +24,13 @@ bool quit = false; //looping flag
 #include "texture_wrapper.h"
 #include "ants.h"
 
+enum ui {
+	MENU,
+	TWO_PLAYER_GAME
+};
+
+ui ui_state = MENU;
+
 bool init()
 {
 	bool success = true;
@@ -57,21 +64,42 @@ void close()
 
 void render_loop()
 {
+	class background_texture : public texture_wrapper {
+		SDL_Rect rect;
+		public:
+		background_texture()
+		{
+			rect.x = 0;
+			rect.y = 0;
+			rect.w = SCREEN_WIDTH;
+			rect.h = SCREEN_HEIGHT;
+		}
+		void render()
+		{
+			SDL_RenderCopy(renderer, texture, NULL, &rect);
+		}
+	};
 	//load background
-	texture_wrapper background;
-	background.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bg.png");
+	background_texture background;
+	background.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bg.jpg");
 
 	//load title
 	texture_wrapper title;
 	title.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/title.png");
 
-	while (!quit) {
-		//clear renderer
-		SDL_RenderClear(renderer);
+	//load options
+	texture_wrapper options;
+	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
-		//render background/title
-		background.render(0,0);
-		title.render(SCREEN_WIDTH/2 - 250, 0);
+	while (!quit) {
+		//render background
+		background.render();
+
+		//render menu
+		if (ui_state == MENU) {
+			title.render(SCREEN_WIDTH/2 - 250, 0);
+			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
+		}
 		
 		//render
 		SDL_RenderPresent(renderer);
@@ -92,9 +120,11 @@ int main()
 	SDL_Event e;
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT) {
+			if (e.type == SDL_QUIT)
 				quit = true;
-			}
+
+			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE)
+				ui_state = TWO_PLAYER_GAME;
 		}
 	}
 

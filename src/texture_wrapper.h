@@ -15,7 +15,7 @@ class texture_wrapper {
 	bool load_texture(std::string path);
 	void render(int x, int y);
 
-	private:
+	protected:
 	int width, height;
 	SDL_Texture* texture;
 };
