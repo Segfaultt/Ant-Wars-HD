@@ -61,12 +61,17 @@ void render_loop()
 	texture_wrapper background;
 	background.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bg.png");
 
+	//load title
+	texture_wrapper title;
+	title.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/title.png");
+
 	while (!quit) {
 		//clear renderer
 		SDL_RenderClear(renderer);
 
-		//render background
+		//render background/title
 		background.render(0,0);
+		title.render(SCREEN_WIDTH/2 - 250, 0);
 		
 		//render
 		SDL_RenderPresent(renderer);
