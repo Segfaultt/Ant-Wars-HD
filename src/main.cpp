@@ -1,4 +1,6 @@
 #include <iostream>
+#include <thread>
+#include <string>
 
 #ifdef _WIN32
 #include <SDL.h>
@@ -8,12 +10,17 @@
 #include <SDL2/SDL_image.h>
 #endif
 
+//screen dimensions
 #define SCREEN_WIDTH 1366
 #define SCREEN_HEIGHT 768
 
 SDL_Renderer* renderer = NULL;
 SDL_Window* window = NULL;
 
+
+bool quit = false; //looping flag
+
+//other files
 #include "texture_wrapper.h"
 #include "ants.h"
 
@@ -48,6 +55,24 @@ void close()
 	window = NULL;
 }
 
+void render_loop()
+{
+	//load background
+	texture_wrapper background;
+	background.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bg.png");
+
+	while (!quit) {
+		//clear renderer
+		SDL_RenderClear(renderer);
+
+		//render background
+		background.render(0,0);
+		
+		//render
+		SDL_RenderPresent(renderer);
+	}
+}
+
 int main()
 {
 	if (!init()) {
@@ -55,6 +80,20 @@ int main()
 		return 1;
 	}
 
+	
+	std::thread render_loop_thread(render_loop);
+
+	//main loop
+	SDL_Event e;
+	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT) {
+				quit = true;
+			}
+		}
+	}
+
+	render_loop_thread.join();
 
 	close();
 	return 0;

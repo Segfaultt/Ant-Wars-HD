@@ -1,6 +1,5 @@
 texture_wrapper::texture_wrapper()
 {
-	renderer = NULL;
 	texture = NULL;
 	width = -1;
 	height = -1;

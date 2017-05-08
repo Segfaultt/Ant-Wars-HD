@@ -1,6 +1,6 @@
 CC = g++
 
-COMPILER_FLAGS = -w
+COMPILER_FLAGS = -w -std=c++11 -DRES_PACK='"default"'
 
 OBJ_NAME = "ant wars HD"
 
