@@ -91,6 +91,8 @@ void render_loop()
 	texture_wrapper options;
 	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
+	//right ant
+	ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
 	while (!quit) {
 		//render background
 		background.render();
@@ -99,8 +101,10 @@ void render_loop()
 		if (ui_state == MENU) {
 			title.render(SCREEN_WIDTH/2 - 250, 0);
 			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
+		} else if (ui_state == TWO_PLAYER_GAME) {
+			right_ant.render();
 		}
-		
+
 		//render
 		SDL_RenderPresent(renderer);
 	}
@@ -123,8 +127,10 @@ int main()
 			if (e.type == SDL_QUIT)
 				quit = true;
 
-			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE)
+			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = TWO_PLAYER_GAME;
+			}
+
 		}
 	}
 
