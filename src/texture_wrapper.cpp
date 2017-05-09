@@ -59,3 +59,10 @@ void texture_wrapper::render(int x, int y)
 	SDL_Rect render_quad = {x, y, width, height};
 	SDL_RenderCopy(renderer, texture, NULL, &render_quad);
 }
+
+void texture_wrapper::render(int x, int y, double angle)
+{
+	SDL_Rect render_quad = {x, y, width, height};
+	SDL_Point centre = {x + width/2, y + height/2};
+	SDL_RenderCopyEx(renderer, texture, NULL, &render_quad, angle, NULL, SDL_FLIP_NONE);
+}

@@ -30,7 +30,8 @@ enum ui {
 };
 
 ui ui_state = MENU;
-
+ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
+//ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
 bool init()
 {
 	bool success = true;
@@ -91,8 +92,6 @@ void render_loop()
 	texture_wrapper options;
 	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
-	//right ant
-	ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
 	while (!quit) {
 		//render background
 		background.render();
@@ -126,12 +125,15 @@ int main()
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT)
 				quit = true;
-
 			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = TWO_PLAYER_GAME;
 			}
-
 		}
+		const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+		/*if (currentKeyStates[SDL_SCANCODE_LEFT])
+			right_ant.move(LEFT);
+		if (currentKeyStates[SDL_SCANCODE_UP])
+			right_ant.move(FORWARDS);*/
 	}
 
 	render_loop_thread.join();

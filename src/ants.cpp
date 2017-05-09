@@ -43,5 +43,5 @@ void ant::move(direction dir)
 
 void ant::render()
 {
-	sprite.render(x, y);
+	sprite.render(x, y, angle);
 }

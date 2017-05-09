@@ -13,6 +13,7 @@ class texture_wrapper {
 	//other functions
 	void free();
 	bool load_texture(std::string path);
+	void render(int x, int y, double angle);
 	void render(int x, int y);
 
 	protected:
