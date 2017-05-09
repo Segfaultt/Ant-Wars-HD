@@ -29,8 +29,6 @@ enum ui {
 	TWO_PLAYER_GAME
 };
 
-ui ui_state = MENU;
-ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
 //ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
 bool init()
 {
@@ -63,8 +61,13 @@ void close()
 	window = NULL;
 }
 
-void render_loop()
+int main()
 {
+	if (!init()) {
+		std::cerr << "failed to init\n";
+		return 1;
+	}
+
 	class background_texture : public texture_wrapper {
 		SDL_Rect rect;
 		public:
@@ -80,7 +83,10 @@ void render_loop()
 			SDL_RenderCopy(renderer, texture, NULL, &rect);
 		}
 	};
+
+	//=====Menu preparation=====
 	//load background
+	ui ui_state = MENU;
 	background_texture background;
 	background.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bg.jpg");
 
@@ -92,7 +98,29 @@ void render_loop()
 	texture_wrapper options;
 	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
+	ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
+
+	//=====main loop=====
+	bool quit = false;
+	SDL_Event e;
 	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT)
+				quit = true;
+			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE) {
+				ui_state = TWO_PLAYER_GAME;
+			}
+		}
+		const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+		if (currentKeyStates[SDL_SCANCODE_LEFT])
+			right_ant.move(LEFT);
+		if (currentKeyStates[SDL_SCANCODE_UP])
+			right_ant.move(FORWARDS);
+		if (currentKeyStates[SDL_SCANCODE_RIGHT])
+			right_ant.move(RIGHT);
+		if (currentKeyStates[SDL_SCANCODE_DOWN])
+			right_ant.move(BACKWARDS);
+
 		//render background
 		background.render();
 
@@ -107,36 +135,6 @@ void render_loop()
 		//render
 		SDL_RenderPresent(renderer);
 	}
-}
-
-int main()
-{
-	if (!init()) {
-		std::cerr << "failed to init\n";
-		return 1;
-	}
-
-	
-	std::thread render_loop_thread(render_loop);
-
-	//main loop
-	SDL_Event e;
-	while (!quit) {
-		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT)
-				quit = true;
-			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE) {
-				ui_state = TWO_PLAYER_GAME;
-			}
-		}
-		const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-		/*if (currentKeyStates[SDL_SCANCODE_LEFT])
-			right_ant.move(LEFT);
-		if (currentKeyStates[SDL_SCANCODE_UP])
-			right_ant.move(FORWARDS);*/
-	}
-
-	render_loop_thread.join();
 
 	close();
 	return 0;

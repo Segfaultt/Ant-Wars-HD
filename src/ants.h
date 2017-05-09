@@ -30,6 +30,7 @@ class ant {
 	double health;
 	double stamina;
 	double mass;
+	double bearing;
 	double angle;
 	int x, y;
 	texture_wrapper sprite;
