@@ -98,12 +98,14 @@ int main()
 	texture_wrapper options;
 	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
-	ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
+	ant right_ant(YA_BOY, SCREEN_WIDTH*3/4, SCREEN_HEIGHT/2);//right ant
+	ant left_ant(YA_BOY, SCREEN_WIDTH/4, SCREEN_HEIGHT/2);//right ant
 
 	//=====main loop=====
 	bool quit = false;
 	SDL_Event e;
 	while (!quit) {
+		//=====input events=====
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT)
 				quit = true;
@@ -121,6 +123,15 @@ int main()
 		if (currentKeyStates[SDL_SCANCODE_DOWN])
 			right_ant.move(BACKWARDS);
 
+		if (currentKeyStates[SDL_SCANCODE_A])
+			left_ant.move(LEFT);
+		if (currentKeyStates[SDL_SCANCODE_W])
+			left_ant.move(FORWARDS);
+		if (currentKeyStates[SDL_SCANCODE_D])
+			left_ant.move(RIGHT);
+		if (currentKeyStates[SDL_SCANCODE_S])
+			left_ant.move(BACKWARDS);
+
 		//render background
 		background.render();
 
@@ -130,6 +141,7 @@ int main()
 			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
 		} else if (ui_state == TWO_PLAYER_GAME) {
 			right_ant.render();
+			left_ant.render();
 		}
 
 		//render
