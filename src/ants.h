@@ -17,6 +17,7 @@ class ant {
 	void nip();
 	void move(direction);
 	void apply_force(double x_component, double y_component);
+	void apply_physics();
 	void render();
 
 	//getters
@@ -25,13 +26,14 @@ class ant {
 	double get_health();
 
 	private:
-	double speed;
-	double turn_speed;
-	double health;
-	double stamina;
-	double mass;
-	double bearing;
-	double angle;
+	double speed,
+	       turn_speed,
+	       health,
+	       stamina,
+	       mass,
+	       velocity[2],
+	       bearing,
+	       angle;
 	int x, y;
 	texture_wrapper sprite;
 };

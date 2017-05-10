@@ -1,9 +1,12 @@
 #include <math.h>
+#include "black_hole.h"
 
 //=====ANT=====
 ant::ant(ant_type type, int starting_x, int starting_y)
 {
 	mass = 100;
+	velocity[0] = 0;
+	velocity[1] = 0;
 	speed = 10;
 	turn_speed = 5;
 	health = 100;
@@ -62,4 +65,29 @@ void ant::move(direction dir)
 void ant::render()
 {
 	sprite.render(x, y, bearing);
+}
+
+void ant::apply_force(double x_component, double y_component)
+{
+	velocity[0] += x_component;
+	velocity[1] += y_component;
+}
+
+void ant::apply_physics()
+{
+	x += velocity[0];
+	y += velocity[1];
+
+	velocity[0] *= 0.9;
+	velocity[1] *= 0.9;
+}
+
+int ant::get_x()
+{
+	return x;
+}
+
+int ant::get_y()
+{
+	return y;
 }

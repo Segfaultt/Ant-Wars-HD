@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
 #include <SDL.h>
@@ -100,6 +101,9 @@ int main()
 
 	ant right_ant(YA_BOY, SCREEN_WIDTH*3/4, SCREEN_HEIGHT/2);//right ant
 	ant left_ant(YA_BOY, SCREEN_WIDTH/4, SCREEN_HEIGHT/2);//right ant
+	std::vector<ant *> left_ant_vector;
+	left_ant_vector.push_back(&left_ant);
+	black_hole hole(50, 50, left_ant_vector);
 
 	//=====main loop=====
 	bool quit = false;
@@ -114,33 +118,44 @@ int main()
 			}
 		}
 		const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-		if (currentKeyStates[SDL_SCANCODE_LEFT])
-			right_ant.move(LEFT);
-		if (currentKeyStates[SDL_SCANCODE_UP])
-			right_ant.move(FORWARDS);
-		if (currentKeyStates[SDL_SCANCODE_RIGHT])
-			right_ant.move(RIGHT);
-		if (currentKeyStates[SDL_SCANCODE_DOWN])
-			right_ant.move(BACKWARDS);
 
-		if (currentKeyStates[SDL_SCANCODE_A])
-			left_ant.move(LEFT);
-		if (currentKeyStates[SDL_SCANCODE_W])
-			left_ant.move(FORWARDS);
-		if (currentKeyStates[SDL_SCANCODE_D])
-			left_ant.move(RIGHT);
-		if (currentKeyStates[SDL_SCANCODE_S])
-			left_ant.move(BACKWARDS);
+		if (ui_state == TWO_PLAYER_GAME) {
+			//right ant control
+			if (currentKeyStates[SDL_SCANCODE_LEFT])
+				right_ant.move(LEFT);
+			if (currentKeyStates[SDL_SCANCODE_UP])
+				right_ant.move(FORWARDS);
+			if (currentKeyStates[SDL_SCANCODE_RIGHT])
+				right_ant.move(RIGHT);
+			if (currentKeyStates[SDL_SCANCODE_DOWN])
+				right_ant.move(BACKWARDS);
+			if (currentKeyStates[SDL_SCANCODE_K])
+				left_ant.apply_force(10 / (left_ant.get_x() - right_ant.get_x()), 10 / (left_ant.get_y() - right_ant.get_y()));
 
+			//left ant control
+			if (currentKeyStates[SDL_SCANCODE_A])
+				left_ant.move(LEFT);
+			if (currentKeyStates[SDL_SCANCODE_W])
+				left_ant.move(FORWARDS);
+			if (currentKeyStates[SDL_SCANCODE_D])
+				left_ant.move(RIGHT);
+			if (currentKeyStates[SDL_SCANCODE_S])
+				left_ant.move(BACKWARDS);
+		}
+
+		//=====rendering=====
 		//render background
 		background.render();
 
-		//render menu
-		if (ui_state == MENU) {
+		if (ui_state == MENU) {//render menu
 			title.render(SCREEN_WIDTH/2 - 250, 0);
 			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
-		} else if (ui_state == TWO_PLAYER_GAME) {
+		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
+			hole.render();
+			hole.pull_ants();
+			right_ant.apply_physics();
 			right_ant.render();
+			left_ant.apply_physics();
 			left_ant.render();
 		}
 
