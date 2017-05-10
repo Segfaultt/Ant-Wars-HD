@@ -1,3 +1,5 @@
+#include "black_hole.h"
+
 enum direction {
 	FORWARDS,
 	BACKWARDS,
@@ -6,15 +8,18 @@ enum direction {
 };
 
 enum ant_type {
-	YA_BOY
+	YA_BOY,
+	LUCA
 };
 
 class ant {
 	public:
-	ant(ant_type type, int starting_x, int starting_y);
+	ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> other_ants_);
+	~ant();
 
 	//actions
 	void nip();
+	void ability();
 	void move(direction);
 	void apply_force(double x_component, double y_component);
 	void apply_physics();
@@ -38,6 +43,9 @@ class ant {
 	       velocity[2],
 	       bearing,
 	       angle;
+	std::vector<black_hole *> holes;
+	std::vector<ant *> other_ants;
+	ant_type type;
 	int x, y;
 	bool alive;
 	texture_wrapper sprite;

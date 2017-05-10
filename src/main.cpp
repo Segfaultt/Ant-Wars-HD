@@ -100,11 +100,11 @@ int main()
 	texture_wrapper options;
 	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
-	ant right_ant(YA_BOY, SCREEN_WIDTH*3/4, SCREEN_HEIGHT/2);//right ant
-	ant left_ant(YA_BOY, SCREEN_WIDTH/4, SCREEN_HEIGHT/2);//right ant
-	std::vector<ant *> left_ant_vector;
-	left_ant_vector.push_back(&left_ant);
-	black_hole hole(50, 50, left_ant_vector);
+	//load end screen
+	texture_wrapper game_over;
+	game_over.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/game_over.png");
+
+	ant *right_ant = NULL, *left_ant = NULL;
 
 	//=====main loop=====
 	bool quit = false;
@@ -116,6 +116,19 @@ int main()
 				quit = true;
 			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = TWO_PLAYER_GAME;
+				if (left_ant != NULL)
+					delete[] left_ant;
+				if (right_ant != NULL)
+					delete[] right_ant;
+
+				left_ant = new ant(YA_BOY, 50, SCREEN_HEIGHT/2, {right_ant});
+				right_ant = new ant(LUCA, SCREEN_WIDTH-50, SCREEN_HEIGHT/2, {left_ant});
+			}
+			if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_k) {
+				right_ant->ability();
+			}
+			if (ui_state == GAME_OVER && e.key.keysym.sym == SDLK_SPACE) {
+				ui_state = MENU;
 			}
 		}
 		const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
@@ -123,23 +136,33 @@ int main()
 		if (ui_state == TWO_PLAYER_GAME) {
 			//right ant control
 			if (currentKeyStates[SDL_SCANCODE_LEFT])
-				right_ant.move(LEFT);
+				right_ant->move(LEFT);
 			if (currentKeyStates[SDL_SCANCODE_UP])
-				right_ant.move(FORWARDS);
+				right_ant->move(FORWARDS);
 			if (currentKeyStates[SDL_SCANCODE_RIGHT])
-				right_ant.move(RIGHT);
+				right_ant->move(RIGHT);
 			if (currentKeyStates[SDL_SCANCODE_DOWN])
-				right_ant.move(BACKWARDS);
+				right_ant->move(BACKWARDS);
 
 			//left ant control
 			if (currentKeyStates[SDL_SCANCODE_A])
-				left_ant.move(LEFT);
+				left_ant->move(LEFT);
 			if (currentKeyStates[SDL_SCANCODE_W])
-				left_ant.move(FORWARDS);
+				left_ant->move(FORWARDS);
 			if (currentKeyStates[SDL_SCANCODE_D])
-				left_ant.move(RIGHT);
+				left_ant->move(RIGHT);
 			if (currentKeyStates[SDL_SCANCODE_S])
-				left_ant.move(BACKWARDS);
+				left_ant->move(BACKWARDS);
+		}
+
+		//=====life checks=====
+		if (ui_state == TWO_PLAYER_GAME) {
+			right_ant->check_edge();
+			left_ant->check_edge();
+			if (!right_ant->is_alive() | !left_ant->is_alive()) {
+				ui_state = GAME_OVER;
+				std::cout << "test\n";
+			}
 		}
 
 		//=====rendering=====
@@ -150,12 +173,12 @@ int main()
 			title.render(SCREEN_WIDTH/2 - 250, 0);
 			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
 		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
-			hole.render();
-			hole.pull_ants();
-			right_ant.apply_physics();
-			right_ant.render();
-			left_ant.apply_physics();
-			left_ant.render();
+			right_ant->apply_physics();
+			right_ant->render();
+			left_ant->apply_physics();
+			left_ant->render();
+		} else if (ui_state == GAME_OVER) {
+			game_over.render(SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/4);
 		}
 
 		//render

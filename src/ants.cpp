@@ -2,8 +2,9 @@
 #include "black_hole.h"
 
 //=====ANT=====
-ant::ant(ant_type type, int starting_x, int starting_y)
+ant::ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> other_ants_)
 {
+	type = type_;
 	alive = true;
 	mass = 100;
 	velocity[0] = 0;
@@ -14,6 +15,7 @@ ant::ant(ant_type type, int starting_x, int starting_y)
 	stamina = 100;
 	x = starting_x;
 	y = starting_y;
+	other_ants = other_ants_;
 	if (x > SCREEN_WIDTH/2) {
 		bearing = 270;
 		angle = 180;
@@ -25,8 +27,16 @@ ant::ant(ant_type type, int starting_x, int starting_y)
 	switch (type) {
 		case YA_BOY:
 		sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/ya_boy.png");
+		case LUCA:
+		sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/luca.png");
 		break;
 	};
+}
+
+ant::~ant()
+{
+	for (black_hole *i : holes)
+		i->~black_hole();
 }
 
 void ant::move(direction dir)
@@ -66,6 +76,10 @@ void ant::move(direction dir)
 void ant::render()
 {
 	sprite.render(x, y, bearing);
+	if (type == LUCA) {
+		for (black_hole *i : holes)
+			i->render();
+	}
 }
 
 void ant::apply_force(double x_component, double y_component)
@@ -81,6 +95,15 @@ void ant::apply_physics()
 
 	velocity[0] *= 0.9;
 	velocity[1] *= 0.9;
+
+	double x_component, y_component;
+	for (black_hole *i : holes)
+		for (ant *each_ant : other_ants) {
+			x_component = 0;
+			y_component = 0;
+			i->pull_ants(each_ant->get_x(), each_ant->get_y(), each_ant->get_mass(), x_component, y_component);
+			each_ant->apply_force(x_component, y_component);
+		}
 }
 
 int ant::get_x()
@@ -115,5 +138,17 @@ void ant::check_edge()
 {
 	if (x > SCREEN_WIDTH | x < 0 | y > SCREEN_HEIGHT | y < 0) {
 		damage(100);
+	}
+}
+
+void ant::ability()
+{
+	switch (type) {
+		case LUCA:
+		if (stamina > 50) {
+			black_hole *hole = new black_hole(x, y);
+			holes.push_back(hole);
+			stamina -= 50;
+		}
 	}
 }
