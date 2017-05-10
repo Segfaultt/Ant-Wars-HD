@@ -19,11 +19,15 @@ class ant {
 	void apply_force(double x_component, double y_component);
 	void apply_physics();
 	void render();
+	void damage(double damage);
+	void check_edge();
 
 	//getters
 	int get_x();
 	int get_y();
+	double get_mass();
 	double get_health();
+	bool is_alive();
 
 	private:
 	double speed,
@@ -35,6 +39,7 @@ class ant {
 	       bearing,
 	       angle;
 	int x, y;
+	bool alive;
 	texture_wrapper sprite;
 };
 

@@ -17,10 +17,11 @@ void black_hole::render()
 
 void black_hole::pull_ants()
 {
+	const double G = 100;
 	double distance;
 	for (ant *ant_iterator : targets) {
 		distance = sqrt(pow(x - ant_iterator->get_x(), 2) + pow(y - ant_iterator->get_y(), 2));
-		ant_iterator->apply_force(distance/(x - ant_iterator->get_x()), distance/(y - ant_iterator->get_y()));
-		std::cout << (distance/(x - ant_iterator->get_x())) << '\t' <<  (distance/(y - ant_iterator->get_y())) << '\n';
+		ant_iterator->apply_force((G * ant_iterator->get_mass() * (x - ant_iterator->get_x()))/pow(distance, 3),
+					  (G * ant_iterator->get_mass() * (y - ant_iterator->get_y()))/pow(distance, 3) );
 	}
 }

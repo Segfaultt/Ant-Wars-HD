@@ -27,7 +27,8 @@ bool quit = false; //looping flag
 
 enum ui {
 	MENU,
-	TWO_PLAYER_GAME
+	TWO_PLAYER_GAME,
+	GAME_OVER
 };
 
 //ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
@@ -129,8 +130,6 @@ int main()
 				right_ant.move(RIGHT);
 			if (currentKeyStates[SDL_SCANCODE_DOWN])
 				right_ant.move(BACKWARDS);
-			if (currentKeyStates[SDL_SCANCODE_K])
-				left_ant.apply_force(10 / (left_ant.get_x() - right_ant.get_x()), 10 / (left_ant.get_y() - right_ant.get_y()));
 
 			//left ant control
 			if (currentKeyStates[SDL_SCANCODE_A])
