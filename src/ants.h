@@ -15,7 +15,8 @@ enum ant_type {
 
 class ant {
 	public:
-	ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> other_ants_);
+	ant(ant_type type_, int starting_x, int starting_y);
+	void set_other_ants(std::vector<ant *> other_ants_);
 	~ant();
 
 	//actions
@@ -51,6 +52,8 @@ class ant {
 	int x, y;
 	bool alive;
 	texture_wrapper sprite;
+	texture_wrapper nip_texture;
+	int nip_out_timer;
 };
 
 #include "ants.cpp"

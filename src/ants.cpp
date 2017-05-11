@@ -1,10 +1,13 @@
 #include <math.h>
 #include "black_hole.h"
+#define PI_OVER_180 0.017453293
+#define STAMINA_REGEN 0.3
 
 //=====ANT=====
-ant::ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> other_ants_)
+ant::ant(ant_type type_, int starting_x, int starting_y)
 {
 	type = type_;
+	nip_out_timer = 0;
 	alive = true;
 	mass = 100;
 	velocity[0] = 0;
@@ -15,7 +18,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> othe
 	stamina = 100;
 	x = starting_x;
 	y = starting_y;
-	other_ants = other_ants_;
+	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
 
 	bar_health = new bar(90, 10);
 	bar_stamina = new bar(60, 7);
@@ -30,11 +33,16 @@ ant::ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> othe
 
 	switch (type) {
 		case YA_BOY:
-		sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/ya_boy.png");
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/ya_boy.png");
 		case LUCA:
-		sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/luca.png");
-		break;
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/luca.png");
+			break;
 	};
+}
+
+void ant::set_other_ants(std::vector<ant *> other_ants_)
+{
+	other_ants = other_ants_;
 }
 
 ant::~ant()
@@ -45,7 +53,6 @@ ant::~ant()
 
 void ant::move(direction dir)
 {
-	#define PI_OVER_180 0.017453293
 	switch (dir) {
 		case FORWARDS:
 			x += speed * cos(angle * PI_OVER_180);
@@ -81,8 +88,13 @@ void ant::render()
 {
 	sprite.render(x, y, bearing);
 
-	bar_health->render(x + 50, y - 100, health);
-	bar_stamina->render(x + 80, y - 90, stamina);
+	bar_health->render(x + 50, y - 32, health);
+	bar_stamina->render(x + 80, y - 20, stamina);
+
+	if (nip_out_timer > 0) {
+		nip_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
+		nip_out_timer--;
+	}
 
 	if (type == LUCA) {
 		for (black_hole *i : holes) {
@@ -105,9 +117,11 @@ void ant::apply_force(double x_component, double y_component)
 
 void ant::apply_physics()
 {
+	//apply velocity
 	x += velocity[0];
 	y += velocity[1];
 
+	//friction/air resistance
 	velocity[0] *= 0.9;
 	velocity[1] *= 0.9;
 	if (abs(velocity[0]) < 0.0001)
@@ -115,8 +129,7 @@ void ant::apply_physics()
 	if (abs(velocity[1]) < 0.0001)
 		velocity[1] = 0;
 
-#define STAMINA_REGEN 0.5
-	if (stamina <= 100 - STAMINA_REGEN) {
+	if (stamina <= 100 - STAMINA_REGEN) {//stamina regen cap
 		stamina += STAMINA_REGEN;
 	}
 
@@ -160,8 +173,8 @@ bool ant::is_alive()
 
 void ant::check_edge()
 {
-	if (x + 50 > SCREEN_WIDTH | x + 50< 0 | y - 50 > SCREEN_HEIGHT | y - 50 < 0) {
-		damage(10);
+	if (x + 50 > SCREEN_WIDTH | x + 50< 0 | y + 50 > SCREEN_HEIGHT | y + 50 < 0) {
+		damage(0.5);
 	}
 }
 
@@ -169,10 +182,27 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-		if (stamina > 80) {
-			black_hole *hole = new black_hole(x, y, angle);
-			holes.push_back(hole);
-			stamina -= 80;
+			if (stamina > 80) {
+				black_hole *hole = new black_hole(x, y, angle);
+				holes.push_back(hole);
+				stamina -= 80;
+			}
+	}
+}
+
+void ant::nip()
+{
+	const double stamina_take = 30;
+	if (stamina >= stamina_take && nip_out_timer == 0) {
+		stamina -= stamina_take;
+		int nip_pos[2] = {45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25};
+		double distance = 0;
+		nip_out_timer = TICKS_PER_FRAME/2;//0.5 seconds
+		for (ant *i : other_ants) {
+			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
+			if (distance < 50) {
+				i->damage(20);
+			}
 		}
 	}
 }
