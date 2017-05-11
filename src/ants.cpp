@@ -2,6 +2,7 @@
 #include "black_hole.h"
 #define PI_OVER_180 0.017453293
 #define STAMINA_REGEN 0.3
+#define ANT_REPEL_FORCE 100
 
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
@@ -128,6 +129,16 @@ void ant::apply_physics()
 		velocity[0] = 0;
 	if (abs(velocity[1]) < 0.0001)
 		velocity[1] = 0;
+
+	//ants repel
+	double distance;
+	for (ant *i : other_ants) {
+		distance = sqrt(pow(i->get_x() - x, 2) + pow(i->get_y() - y, 2));
+		if (distance < 90) {
+			velocity[0] -= ANT_REPEL_FORCE * (i->get_x() - x)/pow(distance, 3);
+			velocity[1] -= ANT_REPEL_FORCE * (i->get_y() - y)/pow(distance, 3);
+		}
+	}
 
 	if (stamina <= 100 - STAMINA_REGEN) {//stamina regen cap
 		stamina += STAMINA_REGEN;
