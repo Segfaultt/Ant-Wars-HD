@@ -14,6 +14,8 @@
 //screen dimensions
 #define SCREEN_WIDTH 1366
 #define SCREEN_HEIGHT 768
+#define FPS 60
+#define TICKS_PER_FRAME 1000/FPS
 
 SDL_Renderer* renderer = NULL;
 SDL_Window* window = NULL;
@@ -24,6 +26,7 @@ bool quit = false; //looping flag
 //other files
 #include "texture_wrapper.h"
 #include "ants.h"
+#include "timer.h"
 
 enum ui {
 	MENU,
@@ -109,12 +112,17 @@ int main()
 	//=====main loop=====
 	bool quit = false;
 	SDL_Event e;
+	timer cap_timer, fps_timer;
+	int frames = 0;
+	float fps;
+	fps_timer.start();
 	while (!quit) {
+		cap_timer.start();
 		//=====input events=====
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT)
 				quit = true;
-			if (ui_state == MENU && e.key.keysym.sym == SDLK_SPACE) {
+			if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
 				ui_state = TWO_PLAYER_GAME;
 				if (left_ant != NULL)
 					delete[] left_ant;
@@ -131,7 +139,7 @@ int main()
 				ui_state = MENU;
 			}
 		}
-		const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+		const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
 		if (ui_state == TWO_PLAYER_GAME) {
 			//right ant control
@@ -183,6 +191,16 @@ int main()
 
 		//render
 		SDL_RenderPresent(renderer);
+
+		//frame cap
+		if (fps_timer.get_time() > 1000) {
+			fps = frames/(fps_timer.get_time() / 1000);
+		}
+		std::cout << fps << std::endl;
+		if (TICKS_PER_FRAME > cap_timer.get_time()) {
+			SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
+		}
+		frames++;
 	}
 
 	close();
