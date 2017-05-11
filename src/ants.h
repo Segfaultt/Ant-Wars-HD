@@ -1,4 +1,5 @@
 #include "black_hole.h"
+#include "bars.h"
 
 enum direction {
 	FORWARDS,
@@ -45,6 +46,7 @@ class ant {
 	       angle;
 	std::vector<black_hole *> holes;
 	std::vector<ant *> other_ants;
+	bar *bar_health, *bar_stamina;
 	ant_type type;
 	int x, y;
 	bool alive;

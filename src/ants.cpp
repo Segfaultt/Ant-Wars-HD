@@ -16,6 +16,10 @@ ant::ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> othe
 	x = starting_x;
 	y = starting_y;
 	other_ants = other_ants_;
+
+	bar_health = new bar(90, 10);
+	bar_stamina = new bar(60, 7);
+
 	if (x > SCREEN_WIDTH/2) {
 		bearing = 270;
 		angle = 180;
@@ -76,6 +80,10 @@ void ant::move(direction dir)
 void ant::render()
 {
 	sprite.render(x, y, bearing);
+
+	bar_health->render(x + 50, y - 100, health);
+	bar_stamina->render(x + 80, y - 90, stamina);
+
 	if (type == LUCA) {
 		for (black_hole *i : holes) {
 			int pos = 0;
@@ -102,8 +110,15 @@ void ant::apply_physics()
 
 	velocity[0] *= 0.9;
 	velocity[1] *= 0.9;
+	if (abs(velocity[0]) < 0.0001)
+		velocity[0] = 0;
+	if (abs(velocity[1]) < 0.0001)
+		velocity[1] = 0;
 
-	stamina += 1;
+#define STAMINA_REGEN 0.5
+	if (stamina <= 100 - STAMINA_REGEN) {
+		stamina += STAMINA_REGEN;
+	}
 
 	double x_component, y_component;
 	for (black_hole *i : holes)
@@ -145,8 +160,8 @@ bool ant::is_alive()
 
 void ant::check_edge()
 {
-	if (x > SCREEN_WIDTH | x < 0 | y > SCREEN_HEIGHT | y < 0) {
-		damage(100);
+	if (x + 50 > SCREEN_WIDTH | x + 50< 0 | y - 50 > SCREEN_HEIGHT | y - 50 < 0) {
+		damage(10);
 	}
 }
 
@@ -154,10 +169,10 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-		if (stamina > 50) {
-			black_hole *hole = new black_hole(x, y);
+		if (stamina > 80) {
+			black_hole *hole = new black_hole(x, y, angle);
 			holes.push_back(hole);
-			stamina -= 50;
+			stamina -= 80;
 		}
 	}
 }
