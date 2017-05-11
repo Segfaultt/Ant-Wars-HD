@@ -125,17 +125,15 @@ int main()
 			if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
 				ui_state = TWO_PLAYER_GAME;
 				if (left_ant != NULL)
-					delete[] left_ant;
+					delete left_ant;
 				if (right_ant != NULL)
-					delete[] right_ant;
+					delete right_ant;
 
 				left_ant = new ant(YA_BOY, 50, SCREEN_HEIGHT/2, {right_ant});
 				right_ant = new ant(LUCA, SCREEN_WIDTH-50, SCREEN_HEIGHT/2, {left_ant});
-			}
-			if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_k) {
+			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_k) {
 				right_ant->ability();
-			}
-			if (ui_state == GAME_OVER && e.key.keysym.sym == SDLK_SPACE) {
+			} else if (ui_state == GAME_OVER && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = MENU;
 			}
 		}
@@ -169,7 +167,6 @@ int main()
 			left_ant->check_edge();
 			if (!right_ant->is_alive() | !left_ant->is_alive()) {
 				ui_state = GAME_OVER;
-				std::cout << "test\n";
 			}
 		}
 
@@ -196,7 +193,6 @@ int main()
 		if (fps_timer.get_time() > 1000) {
 			fps = frames/(fps_timer.get_time() / 1000);
 		}
-		std::cout << fps << std::endl;
 		if (TICKS_PER_FRAME > cap_timer.get_time()) {
 			SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
 		}

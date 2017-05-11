@@ -9,7 +9,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y, std::vector<ant *> othe
 	mass = 100;
 	velocity[0] = 0;
 	velocity[1] = 0;
-	speed = 10;
+	speed = 8;
 	turn_speed = 5;
 	health = 100;
 	stamina = 100;
@@ -77,8 +77,15 @@ void ant::render()
 {
 	sprite.render(x, y, bearing);
 	if (type == LUCA) {
-		for (black_hole *i : holes)
+		for (black_hole *i : holes) {
+			int pos = 0;
 			i->render();
+			if (!i->is_alive()) {
+				i->~black_hole();
+				holes.erase(holes.begin() + pos);
+			}
+			pos++;
+		}
 	}
 }
 
@@ -95,6 +102,8 @@ void ant::apply_physics()
 
 	velocity[0] *= 0.9;
 	velocity[1] *= 0.9;
+
+	stamina += 1;
 
 	double x_component, y_component;
 	for (black_hole *i : holes)
