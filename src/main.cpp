@@ -137,7 +137,7 @@ int main()
 					delete right_ant;
 
 				left_ant = new ant(YA_BOY, 50, SCREEN_HEIGHT/2);
-				right_ant = new ant(LUCA, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
+				right_ant = new ant(CSS_BAD, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
 
 				left_ant->set_other_ants({right_ant});
 				right_ant->set_other_ants({left_ant});
