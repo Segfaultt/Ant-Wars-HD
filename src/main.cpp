@@ -109,6 +109,10 @@ int main()
 	//load end screen
 	texture_wrapper game_over;
 	game_over.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/game_over.png");
+	texture_wrapper right_ant_win;
+	right_ant_win.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/right_ant_win.png");
+	texture_wrapper left_ant_win;
+	left_ant_win.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/left_ant_win.png");
 
 	ant *right_ant = NULL, *left_ant = NULL;
 
@@ -177,7 +181,7 @@ int main()
 		if (ui_state == TWO_PLAYER_GAME) {
 			right_ant->check_edge();
 			left_ant->check_edge();
-			if (!right_ant->is_alive() | !left_ant->is_alive()) {
+			if (right_ant->is_alive() + left_ant->is_alive() != 2) {
 				ui_state = GAME_OVER;
 			}
 		}
@@ -196,6 +200,11 @@ int main()
 			left_ant->render();
 		} else if (ui_state == GAME_OVER) {
 			game_over.render(SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/4);
+			if (right_ant->is_alive()) {
+				right_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
+			} else {
+				left_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
+			}
 		}
 
 		//render

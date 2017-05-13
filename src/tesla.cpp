@@ -18,7 +18,7 @@ void electric_bolt::tick(int target_x, int target_y)
 		SDL_SetRenderDrawColor(renderer, 0xc1, 0x4f, 0xc8, 0xff);
 		//SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
 		for (int i = 1; i < last_x.size(); i++) {
-			thickLineRGBA(renderer, last_x[i - 1], last_y[i - 1], last_x[i], last_y[i], 3, 0xc1, 0xaf, 0xc8, 0xff);
+			thickLineRGBA(renderer, last_x[i - 1], last_y[i - 1], last_x[i], last_y[i], 2, 0xd1, 0xbf, 0xd8, 0xff);
 		}
 
 		ball.render(x - ball.get_width()/2, y - ball.get_height()/2);
