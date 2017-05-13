@@ -262,6 +262,7 @@ void ant::ability()
 		case CSS_BAD:
 			if (stamina > 60 && laser_on <= 0) {
 				laser_on = TICKS_PER_FRAME/2;
+				apply_force(-30 * cos(angle * PI_OVER_180), 30 * sin(angle * PI_OVER_180));
 				stamina -= 60;
 			}
 			break;
