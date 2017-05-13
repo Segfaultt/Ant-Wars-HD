@@ -20,6 +20,8 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	x = starting_x;
 	y = starting_y;
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
+	tesla_bolt = NULL;
+	tesla_target = NULL;
 
 	bar_health = new bar(90, 10);
 	bar_stamina = new bar(60, 7);
@@ -35,6 +37,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	switch (type) {
 		case YA_BOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/ya_boy.png");
+			break;
 		case LUCA:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/luca.png");
 			break;
@@ -108,6 +111,17 @@ void ant::render()
 			pos++;
 		}
 	}
+
+
+	if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
+		tesla_bolt->tick(tesla_target->get_x() + 50, tesla_target->get_y() + 50);
+		if (!tesla_bolt->is_alive()) {
+			tesla_target->damage(15);
+			delete tesla_bolt;
+			tesla_bolt = NULL;
+			tesla_target = NULL;
+		}
+	}
 }
 
 void ant::apply_force(double x_component, double y_component)
@@ -128,9 +142,7 @@ void ant::apply_physics()
 	if (abs(velocity[0]) < 0.0001)
 		velocity[0] = 0;
 	if (abs(velocity[1]) < 0.0001)
-		velocity[1] = 0;
-
-	//ants repel
+		velocity[1] = 0; //ants repel
 	double distance;
 	for (ant *i : other_ants) {
 		distance = sqrt(pow(i->get_x() - x, 2) + pow(i->get_y() - y, 2));
@@ -193,11 +205,16 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-			if (stamina > 80) {
-				black_hole *hole = new black_hole(x, y, angle);
-				holes.push_back(hole);
-				stamina -= 80;
-			}
+		if (stamina > 80) {
+			black_hole *hole = new black_hole(x, y, angle);
+			holes.push_back(hole);
+			stamina -= 80;
+		}
+		break;
+
+		case YA_BOY:
+		tesla();
+		break;
 	}
 }
 
@@ -214,6 +231,20 @@ void ant::nip()
 			if (distance < 50) {
 				i->damage(20);
 			}
+		}
+	}
+}
+
+void ant::tesla()
+{
+	const int cost_coefficient = 5;
+	for (ant *i : other_ants) {
+		double distance = sqrt(pow(x - i->get_x(), 2) + pow(y - i->get_y(), 2));
+		if (stamina >= distance/cost_coefficient + 20 && tesla_bolt == NULL) {
+			stamina -= distance/cost_coefficient + 20;
+			tesla_target = i;
+			delete tesla_bolt;
+			tesla_bolt = new electric_bolt(x + 50, y + 50);
 		}
 	}
 }

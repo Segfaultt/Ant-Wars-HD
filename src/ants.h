@@ -1,4 +1,5 @@
 #include "black_hole.h"
+#include "tesla.h"
 #include "bars.h"
 
 enum direction {
@@ -22,6 +23,7 @@ class ant {
 	//actions
 	void nip();
 	void ability();
+	void tesla();
 	void move(direction);
 	void apply_force(double x_component, double y_component);
 	void apply_physics();
@@ -47,6 +49,8 @@ class ant {
 	       angle;
 	std::vector<black_hole *> holes;
 	std::vector<ant *> other_ants;
+	electric_bolt *tesla_bolt;
+	ant *tesla_target;
 	bar *bar_health, *bar_stamina;
 	ant_type type;
 	int x, y;

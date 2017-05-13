@@ -6,9 +6,11 @@
 #ifdef _WIN32
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_gfx.h>
 #else
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 #endif
 
 //screen dimensions
@@ -20,6 +22,7 @@
 SDL_Renderer* renderer = NULL;
 SDL_Window* window = NULL;
 
+int seed = time(NULL);
 
 bool quit = false; //looping flag
 
@@ -129,7 +132,7 @@ int main()
 				if (right_ant != NULL)
 					delete right_ant;
 
-				left_ant = new ant(LUCA, 50, SCREEN_HEIGHT/2);
+				left_ant = new ant(YA_BOY, 50, SCREEN_HEIGHT/2);
 				right_ant = new ant(LUCA, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
 
 				left_ant->set_other_ants({right_ant});
