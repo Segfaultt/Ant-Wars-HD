@@ -156,14 +156,23 @@ void ant::apply_physics()
 		stamina += STAMINA_REGEN;
 	}
 
+	//black hole child physics
 	double x_component, y_component;
-	for (black_hole *i : holes)
+	for (black_hole *i : holes) {
+		//pull other ants
 		for (ant *each_ant : other_ants) {
-			x_component = 0;
+			x_component = 0;//force from black hole passed by reference
 			y_component = 0;
 			i->pull_ants(each_ant->get_x(), each_ant->get_y(), each_ant->get_mass(), x_component, y_component);
 			each_ant->apply_force(x_component, y_component);
 		}
+
+		//pull self
+		x_component = 0;//force from black hole passed by reference
+		y_component = 0;
+		i->pull_ants(x, y, mass, x_component, y_component);
+		apply_force(x_component, y_component);
+	}
 }
 
 int ant::get_x()

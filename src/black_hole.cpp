@@ -5,10 +5,10 @@ black_hole::black_hole(int x_coord, int y_coord, double angle_)
 	x = x_coord;
 	y = y_coord;
 
-	const int launch_force = 60;
+	const int launch_force = 50;
 	#define PI_OVER_180 0.017453293
-	velocity[0] = 20 * cos(angle_ * PI_OVER_180);
-	velocity[1] = -20 * sin(angle_ * PI_OVER_180);
+	velocity[0] = launch_force * cos(angle_ * PI_OVER_180);
+	velocity[1] = -launch_force * sin(angle_ * PI_OVER_180);
 	
 	sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/black_hole.png");
 }
@@ -36,5 +36,5 @@ void black_hole::pull_ants(int target_x, int target_y, double target_mass, doubl
 
 bool black_hole::is_alive()
 {
-	return angle < 800;
+	return angle < 1500;
 }
