@@ -13,7 +13,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	nip_out_timer = 0;
 	laser_on = 0;
 	alive = true;
-	mass = 100;
+	mass = 1;
 	velocity[0] = 0;
 	velocity[1] = 0;
 	speed = 8;
@@ -173,8 +173,8 @@ void ant::render()
 
 void ant::apply_force(double x_component, double y_component)
 {
-	velocity[0] += x_component;
-	velocity[1] += y_component;
+	velocity[0] += x_component/mass;
+	velocity[1] += y_component/mass;
 }
 
 void ant::apply_physics()
@@ -242,6 +242,7 @@ void ant::damage(double damage)
 	if (type == YA_BOY)
 		damage *= 1.5;
 	health -= damage;
+	mass -= damage/150;
 	if (health < 0) {
 		alive = false;
 	}
@@ -314,4 +315,3 @@ void ant::tesla()
 		}
 	}
 }
-

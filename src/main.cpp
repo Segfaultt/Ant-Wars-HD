@@ -109,7 +109,7 @@ int main()
 
 	//load options
 	texture_wrapper options;
-	options.load_text("Press 2 to start a two player game", {0x80, 0x90, 0x70, 0xff}, "res/default/Cousine-Regular.ttf", 30);
+	options.load_text("Press 2 to start a two player game", {0xf0, 0xa0, 0xf0, 0xff}, "res/default/Cousine-Regular.ttf", 30);
 
 	//load choosers
 	class ant_type_chooser {
