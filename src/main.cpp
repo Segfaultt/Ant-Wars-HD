@@ -109,7 +109,7 @@ int main()
 
 	//load options
 	texture_wrapper options;
-	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
+	options.load_text("Press 2 to start a two player game", {0x80, 0x90, 0x70, 0xff}, "res/default/Cousine-Regular.ttf", 30);
 
 	//load choosers
 	class ant_type_chooser {
@@ -122,33 +122,32 @@ int main()
 		public:
 			ant_type_chooser(int x_, int y_)
 			{
-				ya_boy.load_text("Our boy walace", {30,40,200}, "res/default/Cousine-Regular.ttf", 40);
-				luca.load_text("not even smol", {30,40,200}, "res/default/Cousine-Regular.ttf", 40);
-				luca.load_text("not even smol", {30,40,200}, "res/default/Cousine-Regular.ttf", 40);
+				ya_boy.load_text("Our boy walace", {0x3b, 0xcd, 0xd1}, "res/default/Cousine-Regular.ttf", 30);
+				luca.load_text("not even smol", {250,0,0}, "res/default/Cousine-Regular.ttf", 30);
+				jeff.load_text("C## bad", {0xb2, 0x55, 0x00}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
 			void render(ant_type type) {
-				SDL_Rect bg_rect = {x - 5, y - 5, 500, 50};
+				/*SDL_Rect bg_rect = {x - 5, y - 5, 500, 50};
 				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
-				SDL_RenderFillRect(renderer, &bg_rect);
+				SDL_RenderFillRect(renderer, &bg_rect);*/
 				switch(type) {
 					case YA_BOY:
-						ya_boy.render(x, y);
+						ya_boy.render(x - ya_boy.get_width()/2, y);
 						break;
 
 					case LUCA:
-						luca.render(x, y);
+						luca.render(x - luca.get_width()/2, y);
 						break;
 
 					case CSS_BAD:
-						jeff.render(x,y);
+						jeff.render(x - jeff.get_width()/2,y);
 				}
 			}
 	};
 
 
-	ant_type_chooser right_ant_chooser(SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4);
 
 	//load end screen
 	texture_wrapper game_over;
@@ -159,6 +158,8 @@ int main()
 	left_ant_win.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/left_ant_win.png");
 
 	ant *right_ant = NULL, *left_ant = NULL;
+	ant_type_chooser right_ant_chooser(SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4);
+	ant_type_chooser left_ant_chooser(SCREEN_WIDTH/4, SCREEN_HEIGHT*3/4);
 	ant_type right_ant_type = YA_BOY, left_ant_type = YA_BOY;
 	int right_ant_type_timer = 0, left_ant_type_timer = 0;
 
@@ -182,7 +183,7 @@ int main()
 				if (right_ant != NULL)
 					delete right_ant;
 
-				left_ant = new ant(YA_BOY, 50, SCREEN_HEIGHT/2);
+				left_ant = new ant(left_ant_type, 50, SCREEN_HEIGHT/2);
 				right_ant = new ant(right_ant_type, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
 
 				left_ant->set_other_ants({right_ant});
@@ -204,6 +205,24 @@ int main()
 					}
 					right_ant_type_timer = TICKS_PER_FRAME/2;
 				}
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_9) {
+				if (left_ant_type_timer <= 0) {
+					switch (left_ant_type) {
+						case YA_BOY:
+							left_ant_type = LUCA;
+							break;
+
+						case LUCA:
+							left_ant_type = CSS_BAD;
+							break;
+
+						default:
+							left_ant_type = YA_BOY;
+							break;
+					}
+					left_ant_type_timer = TICKS_PER_FRAME/2;
+				}
+
 			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_k) {
 				right_ant->ability();
 			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_c) {
@@ -259,8 +278,9 @@ int main()
 			if (right_ant_type_timer > 0)
 				right_ant_type_timer--;
 			title.render(SCREEN_WIDTH/2 - 250, 0);
-			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
+			options.render((SCREEN_WIDTH - options.get_width())/2, SCREEN_HEIGHT/2);
 			right_ant_chooser.render(right_ant_type);
+			left_ant_chooser.render(left_ant_type);
 		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
 			right_ant->apply_physics();
 			right_ant->render();

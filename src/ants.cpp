@@ -121,10 +121,23 @@ void ant::render()
 	if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
 		tesla_bolt->tick(tesla_target->get_x() + 50, tesla_target->get_y() + 50);
 		if (!tesla_bolt->is_alive()) {
+			//apply attraction
+			double magnitude = PYTHAG(x - tesla_target->get_x(), y - tesla_target->get_y());
+			double x_component_unit_vector = (x - tesla_target->get_x()) / magnitude;
+			double y_component_unit_vector = (y - tesla_target->get_y()) / magnitude;
+			const double pull_force = 3;
+
+			tesla_target->apply_force(pull_force * x_component_unit_vector, pull_force * y_component_unit_vector);
+			apply_force(-pull_force * x_component_unit_vector, -pull_force * y_component_unit_vector);
+
+			//damage
 			tesla_target->damage(15);
+
+			//clean up
 			delete tesla_bolt;
 			tesla_bolt = NULL;
 			tesla_target = NULL;
+
 		}
 	}
 
@@ -226,6 +239,8 @@ double ant::get_mass()
 
 void ant::damage(double damage)
 {
+	if (type == YA_BOY)
+		damage *= 1.5;
 	health -= damage;
 	if (health < 0) {
 		alive = false;
