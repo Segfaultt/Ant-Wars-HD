@@ -120,7 +120,8 @@ int main()
 		private:
 			texture_wrapper ya_boy,
 					luca,
-					jeff;
+					jeff,
+					hipster;
 			int x,y;
 
 		public:
@@ -129,6 +130,7 @@ int main()
 				ya_boy.load_text("Our boy walace", {0x3b, 0xcd, 0xd1}, "res/default/Cousine-Regular.ttf", 30);
 				luca.load_text("not even smol", {250,0,0}, "res/default/Cousine-Regular.ttf", 30);
 				jeff.load_text("C## bad", {0xb2, 0x55, 0x00}, "res/default/Cousine-Regular.ttf", 30);
+				hipster.load_text("hipster ant", {0x50, 0xd0, 0x50}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -147,6 +149,11 @@ int main()
 
 					case CSS_BAD:
 						jeff.render(x - jeff.get_width()/2,y);
+						break;
+
+					case HIPSTER:
+						hipster.render(x - hipster.get_width()/2, y);
+						break;
 				}
 			}
 	};
@@ -205,6 +212,10 @@ int main()
 							right_ant_type = CSS_BAD;
 							break;
 
+						case CSS_BAD:
+							right_ant_type = HIPSTER;
+							break;
+
 						default:
 							right_ant_type = YA_BOY;
 							break;
@@ -220,6 +231,10 @@ int main()
 
 						case LUCA:
 							left_ant_type = CSS_BAD;
+							break;
+
+						case CSS_BAD:
+							left_ant_type = HIPSTER;
 							break;
 
 						default:

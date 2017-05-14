@@ -12,6 +12,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	type = type_;
 	nip_out_timer = 0;
 	laser_on = 0;
+	guitar = 0;
 	alive = true;
 	mass = 1;
 	velocity[0] = 0;
@@ -23,6 +24,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	x = starting_x;
 	y = starting_y;
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
+	guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
 	tesla_bolt = NULL;
 	tesla_target = NULL;
 
@@ -46,6 +48,9 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			break;
 		case CSS_BAD:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/jeff.png");
+			break;
+		case HIPSTER:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
 			break;
 	};
 }
@@ -169,6 +174,13 @@ void ant::render()
 	}
 
 	sprite.render(x, y, bearing);
+
+	if (type == HIPSTER && guitar > 0 && stamina > 0 && health < 100) {
+		guitar--;
+		guitar_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
+		damage(-0.5);
+		stamina -= 2;
+	}
 }
 
 void ant::apply_force(double x_component, double y_component)
@@ -218,7 +230,7 @@ void ant::apply_physics()
 		x_component = 0;//force from black hole passed by reference
 		y_component = 0;
 		i->pull_ants(x, y, mass, x_component, y_component);
-		apply_force(x_component, y_component);
+		apply_force(x_component/2, y_component/2);
 	}
 }
 
@@ -280,6 +292,12 @@ void ant::ability()
 				laser_on = TICKS_PER_FRAME/2;
 				apply_force(-30 * cos(angle * PI_OVER_180), 30 * sin(angle * PI_OVER_180));
 				stamina -= 60;
+			}
+			break;
+
+		case HIPSTER:
+			if (stamina > 0) {
+				guitar = TICKS_PER_FRAME;
 			}
 			break;
 	}

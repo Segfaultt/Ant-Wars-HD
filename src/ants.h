@@ -12,7 +12,8 @@ enum direction {
 enum ant_type {
 	YA_BOY,
 	LUCA,
-	CSS_BAD
+	CSS_BAD,
+	HIPSTER
 };
 
 class ant {
@@ -58,7 +59,8 @@ class ant {
 	bool alive;
 	texture_wrapper sprite;
 	texture_wrapper nip_texture;
-	int nip_out_timer, laser_on;
+	texture_wrapper guitar_texture;
+	int nip_out_timer, laser_on, guitar;
 };
 
 #include "ants.cpp"
