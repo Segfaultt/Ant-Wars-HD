@@ -66,3 +66,27 @@ void texture_wrapper::render(int x, int y, double angle)
 	SDL_Point centre = {x + width/2, y + height/2};
 	SDL_RenderCopyEx(renderer, texture, NULL, &render_quad, angle, NULL, SDL_FLIP_NONE);
 }
+
+bool texture_wrapper::load_text(std::string text, SDL_Color colour, std::string font_path, int size)
+{
+	bool success = true;
+
+	TTF_Font *font = TTF_OpenFont(font_path.c_str(), size);
+	SDL_Surface *message_as_surface = TTF_RenderText_Solid(font, text.c_str(), colour);
+	if (message_as_surface == NULL) {
+		std::cerr << "Could not render text to surface: " << SDL_GetError() << std::endl;
+		success = false;
+	} else { 
+		texture = SDL_CreateTextureFromSurface(renderer, message_as_surface);
+		if (texture == NULL) {
+			std::cout << "Unable to create texture of text: " << SDL_GetError() << std::endl;
+			success = false;
+		} else {
+			width = message_as_surface->w;
+			height = message_as_surface->h;
+		}
+		SDL_FreeSurface(message_as_surface);
+	}
+
+	return success;
+}

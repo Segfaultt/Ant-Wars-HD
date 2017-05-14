@@ -150,7 +150,7 @@ void ant::render()
 				smallest_difference = y_difference;
 
 			if (smallest_difference < 50)
-				i->damage(5);
+				i->damage(2);
 			laser_on--;
 		}
 	}
@@ -288,7 +288,7 @@ void ant::nip()
 
 void ant::tesla()
 {
-	const int cost_coefficient = 5;
+	const int cost_coefficient = 10;
 	for (ant *i : other_ants) {
 		double distance = sqrt(pow(x - i->get_x(), 2) + pow(y - i->get_y(), 2));
 		if (stamina >= distance/cost_coefficient + 20 && tesla_bolt == NULL) {

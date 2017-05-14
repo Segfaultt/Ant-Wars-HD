@@ -11,6 +11,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+#include <SDL2/SDL_ttf.h>
 #endif
 
 //screen dimensions
@@ -54,6 +55,10 @@ bool init()
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 		if (renderer == NULL) {
 			std::cerr << "Could not create renderer: " << SDL_GetError() << std::endl;
+			success = false;
+		}  //Initialize SDL_ttf
+		if( TTF_Init() == -1 ) {
+			std::cerr << "Could not initialise SDL_ttf: " << SDL_GetError() << std::endl;
 			success = false;
 		}
 	}
@@ -106,6 +111,45 @@ int main()
 	texture_wrapper options;
 	options.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/options.png");
 
+	//load choosers
+	class ant_type_chooser {
+		private:
+			texture_wrapper ya_boy,
+					luca,
+					jeff;
+			int x,y;
+
+		public:
+			ant_type_chooser(int x_, int y_)
+			{
+				ya_boy.load_text("Our boy walace", {30,40,200}, "res/default/Cousine-Regular.ttf", 40);
+				luca.load_text("not even smol", {30,40,200}, "res/default/Cousine-Regular.ttf", 40);
+				luca.load_text("not even smol", {30,40,200}, "res/default/Cousine-Regular.ttf", 40);
+				x = x_;
+				y = y_;
+			}
+			void render(ant_type type) {
+				SDL_Rect bg_rect = {x - 5, y - 5, 500, 50};
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
+				SDL_RenderFillRect(renderer, &bg_rect);
+				switch(type) {
+					case YA_BOY:
+						ya_boy.render(x, y);
+						break;
+
+					case LUCA:
+						luca.render(x, y);
+						break;
+
+					case CSS_BAD:
+						jeff.render(x,y);
+				}
+			}
+	};
+
+
+	ant_type_chooser right_ant_chooser(SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4);
+
 	//load end screen
 	texture_wrapper game_over;
 	game_over.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/game_over.png");
@@ -115,6 +159,8 @@ int main()
 	left_ant_win.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/left_ant_win.png");
 
 	ant *right_ant = NULL, *left_ant = NULL;
+	ant_type right_ant_type = YA_BOY, left_ant_type = YA_BOY;
+	int right_ant_type_timer = 0, left_ant_type_timer = 0;
 
 	//=====main loop=====
 	bool quit = false;
@@ -137,10 +183,27 @@ int main()
 					delete right_ant;
 
 				left_ant = new ant(YA_BOY, 50, SCREEN_HEIGHT/2);
-				right_ant = new ant(CSS_BAD, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
+				right_ant = new ant(right_ant_type, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
 
 				left_ant->set_other_ants({right_ant});
 				right_ant->set_other_ants({left_ant});
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_0) {
+				if (right_ant_type_timer <= 0) {
+					switch (right_ant_type) {
+						case YA_BOY:
+							right_ant_type = LUCA;
+							break;
+
+						case LUCA:
+							right_ant_type = CSS_BAD;
+							break;
+
+						default:
+							right_ant_type = YA_BOY;
+							break;
+					}
+					right_ant_type_timer = TICKS_PER_FRAME/2;
+				}
 			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_k) {
 				right_ant->ability();
 			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_c) {
@@ -191,8 +254,13 @@ int main()
 		background.render();
 
 		if (ui_state == MENU) {//render menu
+			if (left_ant_type_timer > 0)
+				left_ant_type_timer--;
+			if (right_ant_type_timer > 0)
+				right_ant_type_timer--;
 			title.render(SCREEN_WIDTH/2 - 250, 0);
 			options.render(SCREEN_WIDTH/2 - 220, SCREEN_HEIGHT/2);
+			right_ant_chooser.render(right_ant_type);
 		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
 			right_ant->apply_physics();
 			right_ant->render();
@@ -213,6 +281,7 @@ int main()
 		//frame cap
 		if (fps_timer.get_time() > 1000) {
 			fps = frames/(fps_timer.get_time() / 1000);
+			std::cout << fps << std::endl;
 		}
 		if (TICKS_PER_FRAME > cap_timer.get_time()) {
 			SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
