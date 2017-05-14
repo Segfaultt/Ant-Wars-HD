@@ -111,6 +111,10 @@ int main()
 	texture_wrapper options;
 	options.load_text("Press 2 to start a two player game", {0xf0, 0xa0, 0xf0, 0xff}, "res/default/Cousine-Regular.ttf", 30);
 
+	//fps count on screen
+	bool show_fps = false;
+	texture_wrapper fps_count;
+
 	//load choosers
 	class ant_type_chooser {
 		private:
@@ -176,6 +180,8 @@ int main()
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT)
 				quit = true;
+			if (e.key.keysym.sym == SDLK_f)
+				show_fps = true; //!show_fps;
 			if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
 				ui_state = TWO_PLAYER_GAME;
 				if (left_ant != NULL)
@@ -295,18 +301,23 @@ int main()
 			}
 		}
 
-		//render
-		SDL_RenderPresent(renderer);
-
 		//frame cap
 		if (fps_timer.get_time() > 1000) {
 			fps = frames/(fps_timer.get_time() / 1000);
-			std::cout << fps << std::endl;
+			//fps count
+			if (show_fps) {
+				fps_count.load_text(std::to_string((int)fps), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+				fps_count.render(0, 0);
+			}
+
 		}
 		if (TICKS_PER_FRAME > cap_timer.get_time()) {
 			SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
 		}
 		frames++;
+
+		//render
+		SDL_RenderPresent(renderer);
 	}
 
 	close();
