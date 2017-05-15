@@ -129,8 +129,7 @@ void ant::render()
 		}
 	}
 
-
-	if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
+if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
 		tesla_bolt->tick(tesla_target->get_x() + 50, tesla_target->get_y() + 50);
 		if (!tesla_bolt->is_alive()) {
 			//apply attraction
@@ -297,7 +296,7 @@ void ant::ability()
 		case CSS_BAD:
 			if (stamina > 60 && laser_on <= 0) {
 				laser_on = TICKS_PER_FRAME/2;
-				apply_force(-30 * cos(angle * PI_OVER_180), 30 * sin(angle * PI_OVER_180));
+				apply_force(-20 * cos(angle * PI_OVER_180), 20 * sin(angle * PI_OVER_180));
 				stamina -= 60;
 			}
 			break;
@@ -321,7 +320,7 @@ void ant::nip()
 		for (ant *i : other_ants) {
 			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
-				i->damage(20);
+				i->damage(10);
 			}
 		}
 	}
@@ -344,4 +343,9 @@ void ant::tesla()
 double ant::get_angle()
 {
 	return angle;
+}
+
+double ant::get_health()
+{
+	return health;
 }

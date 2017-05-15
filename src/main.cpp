@@ -178,6 +178,9 @@ int main()
 	int right_ant_type_timer = 0, left_ant_type_timer = 0;
 
 	//single player set up
+	int kill_count = 0;
+	texture_wrapper kill_count_texture;
+	kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
 	std::vector<bot *> bots;
 
 	//=====main loop=====
@@ -296,14 +299,14 @@ int main()
 				right_ant->move(BACKWARDS);
 		}
 		//=====life checks=====
-		if (ui_state == TWO_PLAYER_GAME) {
+		if (ui_state == TWO_PLAYER_GAME) {//two player
 			right_ant->check_edge();
 			left_ant->check_edge();
 			if (right_ant->is_alive() + left_ant->is_alive() != 2) {
 				ui_state = GAME_OVER;
 			}
 		}
-		if (ui_state == ONE_PLAYER_GAME) {
+		if (ui_state == ONE_PLAYER_GAME) {//single player
 			right_ant->check_edge();
 			if (!right_ant->is_alive()) {
 				ui_state = GAME_OVER;
@@ -321,6 +324,10 @@ int main()
 						bots.push_back(new bot(0, SCREEN_HEIGHT, right_ant));
 						bots.push_back(new bot(SCREEN_WIDTH, SCREEN_HEIGHT, right_ant));
 						right_ant->set_other_ants({bots[bots.size()-1]->get_base(), bots[bots.size()-2]->get_base()});
+
+						//kill count
+						kill_count++;
+						kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
 					}
 				}
 				pos++;
@@ -344,9 +351,12 @@ int main()
 		} else if (ui_state == ONE_PLAYER_GAME) {//render game with one ant
 			right_ant->apply_physics();
 			right_ant->render();
+			if (right_ant->get_health() <= 99.9)
+				right_ant->damage(-0.04);
 			for (bot *i : bots) {
 				i->tick();
 			}
+			kill_count_texture.render((SCREEN_WIDTH - kill_count_texture.get_width())/2, SCREEN_HEIGHT - kill_count_texture.get_height() - 5);
 		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
 			right_ant->apply_physics();
 			right_ant->render();

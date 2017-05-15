@@ -87,6 +87,7 @@ bool texture_wrapper::load_text(std::string text, SDL_Color colour, std::string 
 		}
 		SDL_FreeSurface(message_as_surface);
 	}
+	TTF_CloseFont(font);
 
 	return success;
 }
