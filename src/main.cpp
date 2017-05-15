@@ -30,10 +30,12 @@ bool quit = false; //looping flag
 //other files
 #include "texture_wrapper.h"
 #include "ants.h"
+#include "bot.h"
 #include "timer.h"
 
 enum ui {
 	MENU,
+	ONE_PLAYER_GAME,
 	TWO_PLAYER_GAME,
 	GAME_OVER
 };
@@ -109,7 +111,7 @@ int main()
 
 	//load options
 	texture_wrapper options;
-	options.load_text("Press 2 to start a two player game", {0xf0, 0xa0, 0xf0, 0xff}, "res/default/Cousine-Regular.ttf", 30);
+	options.load_text("Press 2 to start a two player game\n Press 1 to start a signle player game", {0xf0, 0xa0, 0xf0, 0xff}, "res/default/Cousine-Regular.ttf", 30);
 
 	//fps count on screen
 	bool show_fps = false;
@@ -168,11 +170,15 @@ int main()
 	texture_wrapper left_ant_win;
 	left_ant_win.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/left_ant_win.png");
 
+	//set up ants
 	ant *right_ant = NULL, *left_ant = NULL;
 	ant_type_chooser right_ant_chooser(SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4);
 	ant_type_chooser left_ant_chooser(SCREEN_WIDTH/4, SCREEN_HEIGHT*3/4);
 	ant_type right_ant_type = YA_BOY, left_ant_type = YA_BOY;
 	int right_ant_type_timer = 0, left_ant_type_timer = 0;
+
+	//single player set up
+	std::vector<bot *> bots;
 
 	//=====main loop=====
 	bool quit = false;
@@ -189,13 +195,13 @@ int main()
 				quit = true;
 			if (e.key.keysym.sym == SDLK_f)
 				show_fps = true; //!show_fps;
-			if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
+			if (ui_state == MENU && e.key.keysym.sym == SDLK_1) {
+				ui_state = ONE_PLAYER_GAME;
+				right_ant = new ant(right_ant_type, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
+				bots.push_back(new bot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, right_ant));
+				right_ant->set_other_ants({bots[0]->get_base()});
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
 				ui_state = TWO_PLAYER_GAME;
-				if (left_ant != NULL)
-					delete left_ant;
-				if (right_ant != NULL)
-					delete right_ant;
-
 				left_ant = new ant(left_ant_type, 50, SCREEN_HEIGHT/2);
 				right_ant = new ant(right_ant_type, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
 
@@ -244,13 +250,13 @@ int main()
 					left_ant_type_timer = TICKS_PER_FRAME/2;
 				}
 
-			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_k) {
+			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_k) {
 				right_ant->ability();
-			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_c) {
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_c) {
 				left_ant->ability();
-			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_l) {
+			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_l) {
 				right_ant->nip();
-			} else if (ui_state == TWO_PLAYER_GAME && e.key.keysym.sym == SDLK_v) {
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_v) {
 				left_ant->nip();
 			} else if (ui_state == GAME_OVER && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = MENU;
@@ -278,8 +284,17 @@ int main()
 				left_ant->move(RIGHT);
 			if (currentKeyStates[SDL_SCANCODE_S])
 				left_ant->move(BACKWARDS);
+		} else if (ui_state == ONE_PLAYER_GAME) {
+			//right ant control
+			if (currentKeyStates[SDL_SCANCODE_LEFT])
+				right_ant->move(LEFT);
+			if (currentKeyStates[SDL_SCANCODE_UP])
+				right_ant->move(FORWARDS);
+			if (currentKeyStates[SDL_SCANCODE_RIGHT])
+				right_ant->move(RIGHT);
+			if (currentKeyStates[SDL_SCANCODE_DOWN])
+				right_ant->move(BACKWARDS);
 		}
-
 		//=====life checks=====
 		if (ui_state == TWO_PLAYER_GAME) {
 			right_ant->check_edge();
@@ -288,6 +303,30 @@ int main()
 				ui_state = GAME_OVER;
 			}
 		}
+		if (ui_state == ONE_PLAYER_GAME) {
+			right_ant->check_edge();
+			if (!right_ant->is_alive()) {
+				ui_state = GAME_OVER;
+			}
+
+			int pos = 0;
+			for (bot *i : bots) {
+				if (i->get_base() != NULL) {
+					ant *base_ant = i->get_base();
+					base_ant->check_edge();
+					if (!base_ant->is_alive()) {
+						bots.erase(bots.begin() + pos);
+
+						//replacement ants
+						bots.push_back(new bot(0, SCREEN_HEIGHT, right_ant));
+						bots.push_back(new bot(SCREEN_WIDTH, SCREEN_HEIGHT, right_ant));
+						right_ant->set_other_ants({bots[bots.size()-1]->get_base(), bots[bots.size()-2]->get_base()});
+					}
+				}
+				pos++;
+			}
+		}
+
 
 		//=====rendering=====
 		//render background
@@ -302,6 +341,12 @@ int main()
 			options.render((SCREEN_WIDTH - options.get_width())/2, SCREEN_HEIGHT/2);
 			right_ant_chooser.render(right_ant_type);
 			left_ant_chooser.render(left_ant_type);
+		} else if (ui_state == ONE_PLAYER_GAME) {//render game with one ant
+			right_ant->apply_physics();
+			right_ant->render();
+			for (bot *i : bots) {
+				i->tick();
+			}
 		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
 			right_ant->apply_physics();
 			right_ant->render();
@@ -309,11 +354,22 @@ int main()
 			left_ant->render();
 		} else if (ui_state == GAME_OVER) {
 			game_over.render(SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/4);
-			if (right_ant->is_alive()) {
-				right_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
-			} else {
-				left_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
+			if (left_ant != NULL && right_ant != NULL) {
+				if (right_ant->is_alive()) {
+					right_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
+				} else {
+					left_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
+				}
 			}
+			if (left_ant != NULL) {
+				delete left_ant;
+				left_ant = NULL;
+			}
+			if (right_ant != NULL) {
+				delete right_ant;
+				right_ant = NULL;
+			}
+			bots.clear();
 		}
 
 		//frame cap

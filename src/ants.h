@@ -13,7 +13,8 @@ enum ant_type {
 	YA_BOY,
 	LUCA,
 	CSS_BAD,
-	HIPSTER
+	HIPSTER,
+	BOT
 };
 
 class ant {
@@ -38,6 +39,7 @@ class ant {
 	int get_y();
 	double get_mass();
 	double get_health();
+	double get_angle();
 	bool is_alive();
 
 	private:

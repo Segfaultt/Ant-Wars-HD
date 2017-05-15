@@ -52,6 +52,13 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		case HIPSTER:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
 			break;
+		case BOT:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
+			speed *= 0.5;
+			turn_speed *= 0.8;
+			health *= 0.7;
+			break;
+
 	};
 }
 
@@ -168,7 +175,7 @@ void ant::render()
 				smallest_difference = y_difference;
 
 			if (smallest_difference < 50)
-				i->damage(2);
+				i->damage(5);
 			laser_on--;
 		}
 	}
@@ -332,4 +339,9 @@ void ant::tesla()
 			tesla_bolt = new electric_bolt(x + 50, y + 50);
 		}
 	}
+}
+
+double ant::get_angle()
+{
+	return angle;
 }
