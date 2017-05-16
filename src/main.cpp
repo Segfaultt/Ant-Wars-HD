@@ -270,12 +270,16 @@ int main()
 
 			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_k) {
 				right_ant->ability();
-			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_c) {
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_v) {
 				left_ant->ability();
 			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_l) {
 				right_ant->nip();
-			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_v) {
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_c) {
 				left_ant->nip();
+			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_j) {
+				right_ant->flip();
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_b) {
+				left_ant->flip();
 			} else if (ui_state == GAME_OVER && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = MENU;
 			}

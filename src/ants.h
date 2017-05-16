@@ -34,6 +34,7 @@ class ant {
 	void render();
 	void damage(double damage);
 	void check_edge();
+	void flip();
 
 	//getters
 	int get_x();
@@ -65,7 +66,7 @@ class ant {
 	texture_wrapper sprite;
 	texture_wrapper nip_texture;
 	texture_wrapper guitar_texture;
-	int nip_out_timer, laser_on, guitar;
+	int nip_out_timer, laser_on, guitar, flip_timer;
 };
 
 #include "ants.cpp"

@@ -9,6 +9,7 @@
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
 {
+	flip_timer = 0;
 	type = type_;
 	nip_out_timer = 0;
 	nip_damage = 300;
@@ -116,6 +117,8 @@ void ant::render()
 	bar_health->render(x + 50, y - 32, health);
 	bar_stamina->render(x + 80, y - 20, stamina);
 
+	if (flip_timer > 0)
+		flip_timer--;
 	if (nip_out_timer > 0) {
 		nip_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
 	}
@@ -320,7 +323,7 @@ void ant::ability()
 
 void ant::nip()
 {
-	const double stamina_take = 30;
+	const double stamina_take = 20;
 	if (stamina >= stamina_take && nip_out_timer < -TICKS_PER_FRAME/2) {
 		stamina -= stamina_take;
 		int nip_pos[2] = {45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25};
@@ -369,4 +372,16 @@ double ant::get_health()
 double ant::get_stmaina()
 {
 	return stamina;
+}
+
+void ant::flip()
+{
+	if (stamina >= 30 && flip_timer == 0) {
+		stamina -= 30;
+		bearing += 180;
+		if (bearing > 360)
+			bearing -= 360;
+		angle = 450 - bearing;
+		flip_timer = TICKS_PER_FRAME/2;
+	}
 }
