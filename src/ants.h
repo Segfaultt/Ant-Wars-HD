@@ -14,7 +14,8 @@ enum ant_type {
 	LUCA,
 	CSS_BAD,
 	HIPSTER,
-	BOT
+	BOT,
+	MOONBOY
 };
 
 class ant {
@@ -39,6 +40,7 @@ class ant {
 	int get_y();
 	double get_mass();
 	double get_health();
+	double get_stmaina();
 	double get_angle();
 	bool is_alive();
 
@@ -50,7 +52,8 @@ class ant {
 	       mass,
 	       velocity[2],
 	       bearing,
-	       angle;
+	       angle,
+	       nip_damage;
 	std::vector<black_hole *> holes;
 	std::vector<ant *> other_ants;
 	electric_bolt *tesla_bolt;

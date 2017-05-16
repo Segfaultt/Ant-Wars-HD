@@ -2,7 +2,8 @@ enum ai_state {
 	AGGRESSIVE,
 	FLEE,
 	EVADE,
-	MALFUNCTION
+	MALFUNCTION,
+	OFF_SCREEN
 };
 
 class bot {
@@ -13,7 +14,8 @@ class bot {
 	private:
 		ant *base;
 		ant *target;
-		ai_state state;
+		ai_state state,
+			 past_state;
 };
 
 #include "bot.cpp"

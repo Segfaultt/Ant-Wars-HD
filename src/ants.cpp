@@ -3,7 +3,7 @@
 
 #define PI_OVER_180 0.017453293
 #define PYTHAG(a, b) sqrt(pow(a, 2) + pow(a, 2))
-#define STAMINA_REGEN 0.3
+#define STAMINA_REGEN 0.15
 #define ANT_REPEL_FORCE 100
 
 //=====ANT=====
@@ -11,6 +11,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 {
 	type = type_;
 	nip_out_timer = 0;
+	nip_damage = 300;
 	laser_on = 0;
 	guitar = 0;
 	alive = true;
@@ -54,11 +55,14 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			break;
 		case BOT:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
-			speed *= 0.5;
+			speed *= 0.8;
 			turn_speed *= 0.8;
 			health *= 0.7;
 			break;
 
+		case MOONBOY:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/moonboy.png");
+			nip_damage *= 1.5;
 	};
 }
 
@@ -114,8 +118,9 @@ void ant::render()
 
 	if (nip_out_timer > 0) {
 		nip_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
-		nip_out_timer--;
 	}
+	if (nip_out_timer >= -TICKS_PER_FRAME/2)
+		nip_out_timer--;
 
 	if (type == LUCA) {
 		for (black_hole *i : holes) {
@@ -129,7 +134,7 @@ void ant::render()
 		}
 	}
 
-if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
+	if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
 		tesla_bolt->tick(tesla_target->get_x() + 50, tesla_target->get_y() + 50);
 		if (!tesla_bolt->is_alive()) {
 			//apply attraction
@@ -236,7 +241,7 @@ void ant::apply_physics()
 		x_component = 0;//force from black hole passed by reference
 		y_component = 0;
 		i->pull_ants(x, y, mass, x_component, y_component);
-		apply_force(x_component/2, y_component/2);
+		apply_force(x_component/4, y_component/4);
 	}
 }
 
@@ -257,8 +262,12 @@ double ant::get_mass()
 
 void ant::damage(double damage)
 {
-	if (type == YA_BOY)
-		damage *= 1.5;
+	if (damage < 0) {
+		if (type == YA_BOY)
+			damage *= 1.5;
+		if (type == MOONBOY)
+			damage *= 0.5;
+	}
 	health -= damage;
 	mass -= damage/150;
 	if (health < 0) {
@@ -312,7 +321,7 @@ void ant::ability()
 void ant::nip()
 {
 	const double stamina_take = 30;
-	if (stamina >= stamina_take && nip_out_timer == 0) {
+	if (stamina >= stamina_take && nip_out_timer < -TICKS_PER_FRAME/2) {
 		stamina -= stamina_take;
 		int nip_pos[2] = {45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25};
 		double distance = 0;
@@ -320,7 +329,7 @@ void ant::nip()
 		for (ant *i : other_ants) {
 			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
-				i->damage(10);
+				i->damage(nip_damage/distance);
 			}
 		}
 	}
@@ -329,15 +338,22 @@ void ant::nip()
 void ant::tesla()
 {
 	const int cost_coefficient = 10;
+	tesla_target = NULL;
+	double shortest_distance = 999999;
 	for (ant *i : other_ants) {
 		double distance = sqrt(pow(x - i->get_x(), 2) + pow(y - i->get_y(), 2));
-		if (stamina >= distance/cost_coefficient + 20 && tesla_bolt == NULL) {
-			stamina -= distance/cost_coefficient + 20;
+		if (distance < shortest_distance) {
+			shortest_distance = distance;
 			tesla_target = i;
-			delete tesla_bolt;
-			tesla_bolt = new electric_bolt(x + 50, y + 50);
 		}
 	}
+
+	if (stamina >= shortest_distance/cost_coefficient + 20 && tesla_bolt == NULL) {
+		stamina -= shortest_distance/cost_coefficient + 20;
+		delete tesla_bolt;
+		tesla_bolt = new electric_bolt(x + 50, y + 50);
+	}
+
 }
 
 double ant::get_angle()
@@ -348,4 +364,9 @@ double ant::get_angle()
 double ant::get_health()
 {
 	return health;
+}
+
+double ant::get_stmaina()
+{
+	return stamina;
 }

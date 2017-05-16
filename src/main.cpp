@@ -123,7 +123,8 @@ int main()
 			texture_wrapper ya_boy,
 					luca,
 					jeff,
-					hipster;
+					hipster,
+					moonboy;
 			int x,y;
 
 		public:
@@ -133,6 +134,7 @@ int main()
 				luca.load_text("not even smol", {250,0,0}, "res/default/Cousine-Regular.ttf", 30);
 				jeff.load_text("C## bad", {0xb2, 0x55, 0x00}, "res/default/Cousine-Regular.ttf", 30);
 				hipster.load_text("hipster ant", {0x50, 0xd0, 0x50}, "res/default/Cousine-Regular.ttf", 30);
+				moonboy.load_text("moonboy", {0x70, 0x70, 0x70}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -156,6 +158,10 @@ int main()
 					case HIPSTER:
 						hipster.render(x - hipster.get_width()/2, y);
 						break;
+
+					case MOONBOY:
+						moonboy.render(x - moonboy.get_width()/2, y);
+						break;
 				}
 			}
 	};
@@ -178,9 +184,8 @@ int main()
 	int right_ant_type_timer = 0, left_ant_type_timer = 0;
 
 	//single player set up
-	int kill_count = 0;
+	int kill_count;
 	texture_wrapper kill_count_texture;
-	kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
 	std::vector<bot *> bots;
 
 	//=====main loop=====
@@ -203,6 +208,8 @@ int main()
 				right_ant = new ant(right_ant_type, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
 				bots.push_back(new bot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, right_ant));
 				right_ant->set_other_ants({bots[0]->get_base()});
+				kill_count = 0;
+				kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
 				ui_state = TWO_PLAYER_GAME;
 				left_ant = new ant(left_ant_type, 50, SCREEN_HEIGHT/2);
@@ -225,6 +232,10 @@ int main()
 							right_ant_type = HIPSTER;
 							break;
 
+						case HIPSTER:
+							right_ant_type = MOONBOY;
+							break;
+
 						default:
 							right_ant_type = YA_BOY;
 							break;
@@ -244,6 +255,10 @@ int main()
 
 						case CSS_BAD:
 							left_ant_type = HIPSTER;
+							break;
+
+						case HIPSTER:
+							left_ant_type = MOONBOY;
 							break;
 
 						default:
@@ -314,8 +329,8 @@ int main()
 
 			int pos = 0;
 			for (bot *i : bots) {
-				if (i->get_base() != NULL) {
-					ant *base_ant = i->get_base();
+				ant *base_ant = i->get_base();
+				if (base_ant != NULL) {
 					base_ant->check_edge();
 					if (!base_ant->is_alive()) {
 						bots.erase(bots.begin() + pos);
