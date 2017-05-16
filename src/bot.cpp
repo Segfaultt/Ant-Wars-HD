@@ -35,16 +35,17 @@ void bot::tick()
 	switch (state) {
 		case AGGRESSIVE:
 			//turning
-			if (angle_difference < -5)
+			if (angle_difference < -15)
 				base->move(LEFT);
-			if (angle_difference > 5)
+			if (angle_difference > 15)
 				base->move(RIGHT);
 
 			//move forwards
 			if (abs(angle_difference) < 30 && distance > 60)
 				base->move(FORWARDS);
 
-			if (abs(angle_difference) < 80 && distance < 70)
+			srand(seed++);
+			if (abs(angle_difference) < 80 && distance < 70 && rand()%9 == 0)
 				base->nip();
 			break;
 		case MALFUNCTION:
@@ -110,7 +111,7 @@ void bot::tick()
 	if (base->get_x() - 50 < 0 | base->get_x() + 50 > SCREEN_WIDTH | base->get_y() - 50 < 0 | base->get_y() + 50 > SCREEN_HEIGHT) {
 		past_state = state;
 		state = OFF_SCREEN;
-	} else if (rand()%18 == 0) {
+	} else if (rand()%10 == 0) {
 		past_state = state;
 		state = MALFUNCTION;
 	} else if (stamina_ratio < 20)

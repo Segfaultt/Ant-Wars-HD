@@ -2,8 +2,8 @@
 #include "black_hole.h"
 
 #define PI_OVER_180 0.017453293
-#define PYTHAG(a, b) sqrt(pow(a, 2) + pow(a, 2))
-#define STAMINA_REGEN 0.15
+#define PYTHAG(a, b) sqrt(pow(a, 2) + pow(b, 2))
+#define STAMINA_REGEN 0.18
 #define ANT_REPEL_FORCE 100
 
 //=====ANT=====
@@ -12,7 +12,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	flip_timer = 0;
 	type = type_;
 	nip_out_timer = 0;
-	nip_damage = 300;
+	nip_damage = 40;
 	laser_on = 0;
 	guitar = 0;
 	alive = true;
@@ -58,7 +58,8 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
 			speed *= 0.8;
 			turn_speed *= 0.8;
-			health *= 0.7;
+			health *= 0.5;
+			nip_damage *= 0.7;
 			break;
 
 		case MOONBOY:
@@ -145,6 +146,8 @@ void ant::render()
 			double x_component_unit_vector = (x - tesla_target->get_x()) / magnitude;
 			double y_component_unit_vector = (y - tesla_target->get_y()) / magnitude;
 			const double pull_force = 3;
+
+			std::cout << abs(y_component_unit_vector) + abs(x_component_unit_vector) << '\t' << magnitude << std::endl;
 
 			tesla_target->apply_force(pull_force * x_component_unit_vector, pull_force * y_component_unit_vector);
 			apply_force(-pull_force * x_component_unit_vector, -pull_force * y_component_unit_vector);
@@ -294,10 +297,10 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-			if (stamina > 80) {
+			if (stamina > 40) {
 				black_hole *hole = new black_hole(x, y, angle);
 				holes.push_back(hole);
-				stamina -= 80;
+				stamina -= 40;
 			}
 			break;
 
@@ -332,7 +335,7 @@ void ant::nip()
 		for (ant *i : other_ants) {
 			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
-				i->damage(nip_damage/distance);
+				i->damage(nip_damage);
 			}
 		}
 	}
