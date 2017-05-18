@@ -3,12 +3,13 @@
 
 #define PI_OVER_180 0.017453293
 #define PYTHAG(a, b) sqrt(pow(a, 2) + pow(b, 2))
-#define STAMINA_REGEN 0.18
+#define STAMINA_REGEN 0.22
 #define ANT_REPEL_FORCE 100
 
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
 {
+	arc_turn = 0;
 	flip_timer = 0;
 	type = type_;
 	nip_out_timer = 0;
@@ -53,6 +54,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			break;
 		case HIPSTER:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
+			speed *= 1.2;
 			break;
 		case BOT:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
@@ -65,6 +67,12 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		case MOONBOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/moonboy.png");
 			nip_damage *= 1.5;
+			break;
+
+		case ARC:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/the_arc.png");
+			speed *= 1.5;
+			break;
 	};
 }
 
@@ -83,14 +91,23 @@ void ant::move(direction dir)
 {
 	switch (dir) {
 		case FORWARDS:
-			x += speed * cos(angle * PI_OVER_180);
-			y -= speed * sin(angle * PI_OVER_180);
-			//std::cout << speed * cos(angle * PI_OVER_180) << '\t' << angle << '\t' << speed * sin(angle * PI_OVER_180) << '\t' << x << '\t' << y << '\n';
+			if (guitar > 0) {
+				x += speed * 0.5 * cos(angle * PI_OVER_180);
+				y -= speed * 0.5 * sin(angle * PI_OVER_180);
+			} else {
+				x += speed * cos(angle * PI_OVER_180);
+				y -= speed * sin(angle * PI_OVER_180);
+			}
 			break;
 
 		case BACKWARDS:
-			x -= speed * cos(angle * PI_OVER_180);
-			y += speed * sin(angle * PI_OVER_180);
+			if (guitar > 0) {
+				x -= speed * 0.5 * cos(angle * PI_OVER_180);
+				y += speed * 0.5 * sin(angle * PI_OVER_180);
+			} else {
+				x -= speed * cos(angle * PI_OVER_180);
+				y += speed * sin(angle * PI_OVER_180);
+			}
 			break;
 
 
@@ -145,9 +162,7 @@ void ant::render()
 			double magnitude = PYTHAG(x - tesla_target->get_x(), y - tesla_target->get_y());
 			double x_component_unit_vector = (x - tesla_target->get_x()) / magnitude;
 			double y_component_unit_vector = (y - tesla_target->get_y()) / magnitude;
-			const double pull_force = 3;
-
-			std::cout << abs(y_component_unit_vector) + abs(x_component_unit_vector) << '\t' << magnitude << std::endl;
+			const double pull_force = 8;
 
 			tesla_target->apply_force(pull_force * x_component_unit_vector, pull_force * y_component_unit_vector);
 			apply_force(-pull_force * x_component_unit_vector, -pull_force * y_component_unit_vector);
@@ -171,12 +186,17 @@ void ant::render()
 		//check if hit
 		for (ant *i : other_ants) {
 			double y_difference, x_difference;
-			if ((bearing - 50 > 180 && x - i->get_x() < 0) || (bearing + 50 <= 180 && x - i->get_x() > 0)) {
-				y_difference = SCREEN_HEIGHT;
-				x_difference = SCREEN_WIDTH;
+			if ((bearing > 180 && x - i->get_x() < 0) || (bearing < 180 && x - i->get_x() > 0)) {//if facing the wrong direction
+				y_difference = 1000;
+				x_difference = 1000;
 			} else {
-				y_difference = abs(((i->get_x() - x) * tan(angle * PI_OVER_180) - y + 50) + i->get_y() - 50);
-				x_difference = abs(((i->get_y() - y) / tan(angle * PI_OVER_180) - x + 50) + i->get_x() - 50);
+				if (angle != 90 && angle != 270) {//if tan(angle * PI_OVER_180) is a number (tan(90) and tan(270) are undefined)
+					y_difference = abs(((i->get_x() - x) * tan(angle * PI_OVER_180) - y + 50) + i->get_y() - 50);
+					x_difference = abs(((i->get_y() - y) / tan(angle * PI_OVER_180) - x + 50) + i->get_x() - 50);
+				} else {
+					y_difference = 1000;
+					x_difference = abs(i->get_x() - x);
+				}
 			}
 			double smallest_difference;
 			if (y_difference > x_difference)
@@ -192,11 +212,31 @@ void ant::render()
 
 	sprite.render(x, y, bearing);
 
-	if (type == HIPSTER && guitar > 0 && stamina > 0 && health < 100) {
-		guitar--;
-		guitar_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
-		damage(-0.5);
-		stamina -= 2;
+	if (type == HIPSTER) {
+		if (guitar > 0 && stamina > 0 && health < 100) {
+			guitar--;
+			guitar_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
+			damage(-1);
+			stamina -= 2;
+		} else if (guitar > 0) {
+			guitar = 0;
+		}
+	}
+
+	if (type == ARC && arc_turn > 0) {
+		if (arc_left) {
+			move(LEFT);
+			move(LEFT);
+			move(LEFT);
+		} else {
+			move(RIGHT);
+			move(RIGHT);
+			move(RIGHT);
+		}
+
+		move(FORWARDS);
+		move(FORWARDS);
+		arc_turn--;
 	}
 }
 
@@ -317,10 +357,18 @@ void ant::ability()
 			break;
 
 		case HIPSTER:
-			if (stamina > 0) {
+			if (stamina > 0 && guitar == 0) {
 				guitar = TICKS_PER_FRAME;
 			}
 			break;
+
+		case ARC:
+			if (stamina >= 5 && arc_turn == 0) {
+				stamina -= 5;
+				arc_turn = 180/(turn_speed*3);
+				srand(seed++);
+				arc_left = rand()%2;
+			}
 	}
 }
 

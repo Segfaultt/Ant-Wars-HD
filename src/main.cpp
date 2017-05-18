@@ -2,6 +2,7 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #ifdef _WIN32
 #include <SDL.h>
@@ -40,7 +41,40 @@ enum ui {
 	GAME_OVER
 };
 
-//ant right_ant(YA_BOY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);//right ant
+void add_new_score(unsigned int score, std::fstream& file, ant_type type)
+{
+	file.seekg(0, std::ios_base::end);
+
+	std::string type_name;
+	switch (type) {
+		case HIPSTER:
+			type_name = "Hipster";
+			break;
+
+		case YA_BOY:
+			type_name = "Ya boy";
+			break;
+		case CSS_BAD:
+			type_name = "C## bad";
+			break;
+		case ARC:
+			type_name = "Mr. V";
+			break;
+		case LUCA:
+			type_name = "Luca";
+			break;
+		case MOONBOY:
+			type_name = "Moonboy";
+			break;
+		default:
+			type_name = "Unkown";
+			break;
+	}
+	time_t raw_time;
+	time(&raw_time);
+	file << std::endl << type_name << std::endl << "kills: " << score  << std::endl << ctime(&raw_time);
+}
+
 bool init()
 {
 	bool success = true;
@@ -124,7 +158,8 @@ int main()
 					luca,
 					jeff,
 					hipster,
-					moonboy;
+					moonboy,
+					arc;
 			int x,y;
 
 		public:
@@ -135,13 +170,14 @@ int main()
 				jeff.load_text("C## bad", {0xb2, 0x55, 0x00}, "res/default/Cousine-Regular.ttf", 30);
 				hipster.load_text("hipster ant", {0x50, 0xd0, 0x50}, "res/default/Cousine-Regular.ttf", 30);
 				moonboy.load_text("moonboy", {0x70, 0x70, 0x70}, "res/default/Cousine-Regular.ttf", 30);
+				arc.load_text("Mr. V", {0x70, 0x70, 0xb0}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
 			void render(ant_type type) {
 				/*SDL_Rect bg_rect = {x - 5, y - 5, 500, 50};
-				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
-				SDL_RenderFillRect(renderer, &bg_rect);*/
+				  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
+				  SDL_RenderFillRect(renderer, &bg_rect);*/
 				switch(type) {
 					case YA_BOY:
 						ya_boy.render(x - ya_boy.get_width()/2, y);
@@ -161,6 +197,9 @@ int main()
 
 					case MOONBOY:
 						moonboy.render(x - moonboy.get_width()/2, y);
+						break;
+					case ARC:
+						arc.render(x - arc.get_width()/2, y);
 						break;
 				}
 			}
@@ -187,6 +226,10 @@ int main()
 	int kill_count;
 	texture_wrapper kill_count_texture;
 	std::vector<bot *> bots;
+	std::fstream single_player_scores("./high_scores.txt");
+	if (!single_player_scores.is_open()) {
+		single_player_scores.open("./high_scores.txt", std::ios_base::trunc);
+	}
 
 	//=====main loop=====
 	bool quit = false;
@@ -236,6 +279,10 @@ int main()
 							right_ant_type = MOONBOY;
 							break;
 
+						case MOONBOY:
+							right_ant_type = ARC;
+							break;
+
 						default:
 							right_ant_type = YA_BOY;
 							break;
@@ -259,6 +306,10 @@ int main()
 
 						case HIPSTER:
 							left_ant_type = MOONBOY;
+							break;
+
+						case MOONBOY:
+							left_ant_type = ARC;
 							break;
 
 						default:
@@ -329,6 +380,7 @@ int main()
 			right_ant->check_edge();
 			if (!right_ant->is_alive()) {
 				ui_state = GAME_OVER;
+				add_new_score(kill_count, single_player_scores, right_ant_type);
 			}
 
 			int pos = 0;
@@ -420,6 +472,7 @@ int main()
 		SDL_RenderPresent(renderer);
 	}
 
+	single_player_scores.close();
 	close();
 	return 0;
 }

@@ -111,7 +111,7 @@ void bot::tick()
 	if (base->get_x() - 50 < 0 | base->get_x() + 50 > SCREEN_WIDTH | base->get_y() - 50 < 0 | base->get_y() + 50 > SCREEN_HEIGHT) {
 		past_state = state;
 		state = OFF_SCREEN;
-	} else if (rand()%10 == 0) {
+	} else if (rand()%7 == 0) {
 		past_state = state;
 		state = MALFUNCTION;
 	} else if (stamina_ratio < 20)
