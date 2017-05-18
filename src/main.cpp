@@ -383,13 +383,13 @@ int main()
 				add_new_score(kill_count, single_player_scores, right_ant_type);
 			}
 
-			int pos = 0;
-			for (bot *i : bots) {
-				ant *base_ant = i->get_base();
+			for (int i = 0; i < bots.size(); i++) {
+				ant *base_ant = bots[i]->get_base();
 				if (base_ant != NULL) {
 					base_ant->check_edge();
 					if (!base_ant->is_alive()) {
-						bots.erase(bots.begin() + pos);
+						bots.erase(bots.begin() + i);
+						i = 0;
 
 						//replacement ants
 						bots.push_back(new bot(0, SCREEN_HEIGHT, right_ant));
@@ -401,7 +401,6 @@ int main()
 						kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
 					}
 				}
-				pos++;
 			}
 		}
 

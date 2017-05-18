@@ -63,7 +63,7 @@ void bot::tick()
 				if (rand()%20 == 0)
 					base->nip();
 				srand(seed++);
-				if (rand()%6 == 0)
+				if (rand()%15 == 0)
 					state = past_state;
 				break;
 			}

@@ -204,8 +204,16 @@ void ant::render()
 			else 
 				smallest_difference = y_difference;
 
-			if (smallest_difference < 50)
+			if (smallest_difference < 50) {
 				i->damage(5);
+
+				//push targets
+				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
+				double x_component_unit_vector = (x - i->get_x()) / magnitude;
+				double y_component_unit_vector = (y - i->get_y()) / magnitude;
+				const double push_force = -3;
+				i->apply_force(push_force * x_component_unit_vector, push_force * y_component_unit_vector);
+			}
 			laser_on--;
 		}
 	}
