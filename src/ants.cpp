@@ -308,7 +308,7 @@ double ant::get_mass()
 
 void ant::damage(double damage)
 {
-	if (damage < 0) {
+	if (damage > 0) {
 		if (type == YA_BOY)
 			damage *= 1.5;
 		if (type == MOONBOY)
