@@ -158,15 +158,6 @@ void ant::render()
 	if (type == YA_BOY && tesla_bolt != NULL && tesla_target != NULL) {
 		tesla_bolt->tick(tesla_target->get_x() + 50, tesla_target->get_y() + 50);
 		if (!tesla_bolt->is_alive()) {
-			//apply attraction
-			double magnitude = PYTHAG(x - tesla_target->get_x(), y - tesla_target->get_y());
-			double x_component_unit_vector = (x - tesla_target->get_x()) / magnitude;
-			double y_component_unit_vector = (y - tesla_target->get_y()) / magnitude;
-			const double pull_force = 8;
-
-			tesla_target->apply_force(pull_force * x_component_unit_vector, pull_force * y_component_unit_vector);
-			apply_force(-pull_force * x_component_unit_vector, -pull_force * y_component_unit_vector);
-
 			//damage
 			tesla_target->damage(15);
 
@@ -392,6 +383,14 @@ void ant::nip()
 			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
 				i->damage(nip_damage);
+				
+				//push targets
+				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
+				double x_component_unit_vector = (x - i->get_x()) / magnitude;
+				double y_component_unit_vector = (y - i->get_y()) / magnitude;
+				const double push_force = -3;
+				i->apply_force(push_force * x_component_unit_vector, push_force * y_component_unit_vector);
+
 			}
 		}
 	}
@@ -414,6 +413,16 @@ void ant::tesla()
 		stamina -= shortest_distance/cost_coefficient + 20;
 		delete tesla_bolt;
 		tesla_bolt = new electric_bolt(x + 50, y + 50);
+		//apply attraction
+		double magnitude = PYTHAG(x - tesla_target->get_x(), y - tesla_target->get_y());
+		double x_component_unit_vector = (x - tesla_target->get_x()) / magnitude;
+		double y_component_unit_vector = (y - tesla_target->get_y()) / magnitude;
+		const double pull_force = 8;
+
+		tesla_target->apply_force(pull_force * x_component_unit_vector, pull_force * y_component_unit_vector);
+		apply_force(-pull_force * x_component_unit_vector, -pull_force * y_component_unit_vector);
+
+
 	}
 
 }
