@@ -310,7 +310,8 @@ void ant::apply_physics()
 			if (i->tick(x + 50, y + 50))
 				in_grease = true;
 		if (in_grease) {
-			grease_effect = 2;
+			grease_effect = 1.5;
+			damage(-0.1);
 		} else {
 			grease_effect = 1;
 		}
