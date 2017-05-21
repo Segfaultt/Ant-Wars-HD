@@ -4,7 +4,7 @@ grease_trap::grease_trap(int x_, int y_)
 	x = x_;
 	y = y_;
 	alive = true;
-	ticks_until_death = TICKS_PER_FRAME*30;
+	ticks_until_death = TICKS_PER_FRAME*40;
 };
 
 bool grease_trap::tick(int target_x, int target_y)

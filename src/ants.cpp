@@ -77,7 +77,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 
 		case GREASY_BOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
-			stamina_regen *= 1.2;
+			speed *= 0.8;
 			break;
 	};
 }
@@ -400,8 +400,8 @@ void ant::ability()
 			}
 			break;
 		case GREASY_BOY:
-			if (stamina >= 60) {
-				stamina -= 60;
+			if (stamina >= 70) {
+				stamina -= 70;
 				grease.push_back(new grease_trap(x + sprite.get_width()/2, y + sprite.get_height()/2));
 			}
 	}
@@ -495,6 +495,7 @@ void ant::set_grease_effect(bool on)
 	if (type != GREASY_BOY) {
 		if (on) {
 			grease_effect = 0.5;
+			damage(0.2);
 		} else {
 			grease_effect = 1;
 		}
