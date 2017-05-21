@@ -16,6 +16,9 @@ class bot {
 		ant *target;
 		ai_state state,
 			 past_state;
+		int speed_talent,
+		       inteligence,
+		       right_bias;
 };
 
 #include "bot.cpp"

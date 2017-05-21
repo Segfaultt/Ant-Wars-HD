@@ -501,3 +501,8 @@ void ant::set_grease_effect(bool on)
 		}
 	}
 }
+
+void ant::change_speed(double value)
+{
+	speed += value;
+}

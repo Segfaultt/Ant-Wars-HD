@@ -38,7 +38,10 @@ class ant {
 	void damage(double damage);
 	void check_edge();
 	void flip();
+
+	//setters
 	void set_grease_effect(bool on);
+	void change_speed(double value);
 
 	//getters
 	int get_x();

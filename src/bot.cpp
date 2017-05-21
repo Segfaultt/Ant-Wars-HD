@@ -9,6 +9,14 @@ bot::bot(int x, int y, ant* new_target)
 	target = new_target;
 	state = AGGRESSIVE;
 	base->set_other_ants({target});
+
+	srand(seed++);
+	speed_talent = rand()%6;
+	base->change_speed(speed_talent/10 - 0.3);
+	srand(seed++);
+	inteligence = rand()%15 + 1;
+	srand(seed++);
+	right_bias = rand()%20-10;
 }
 
 void bot::tick()
@@ -35,9 +43,9 @@ void bot::tick()
 	switch (state) {
 		case AGGRESSIVE:
 			//turning
-			if (angle_difference < -15)
+			if (angle_difference < -15 + right_bias)
 				base->move(LEFT);
-			if (angle_difference > 15)
+			if (angle_difference > 15 + right_bias)
 				base->move(RIGHT);
 
 			//move forwards
@@ -111,7 +119,7 @@ void bot::tick()
 	if (base->get_x() - 50 < 0 | base->get_x() + 50 > SCREEN_WIDTH | base->get_y() - 50 < 0 | base->get_y() + 50 > SCREEN_HEIGHT) {
 		past_state = state;
 		state = OFF_SCREEN;
-	} else if (rand()%7 == 0) {
+	} else if (rand()%inteligence == 0) {
 		past_state = state;
 		state = MALFUNCTION;
 	} else if (stamina_ratio < 20)
