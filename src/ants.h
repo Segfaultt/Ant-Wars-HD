@@ -1,4 +1,5 @@
 #include "black_hole.h"
+#include "greasy.h"
 #include "tesla.h"
 #include "bars.h"
 
@@ -16,7 +17,8 @@ enum ant_type {
 	HIPSTER,
 	BOT,
 	MOONBOY,
-	ARC
+	ARC,
+	GREASY_BOY
 };
 
 class ant {
@@ -36,6 +38,7 @@ class ant {
 	void damage(double damage);
 	void check_edge();
 	void flip();
+	void set_grease_effect(bool on);
 
 	//getters
 	int get_x();
@@ -51,12 +54,15 @@ class ant {
 	       turn_speed,
 	       health,
 	       stamina,
+	       stamina_regen,
 	       mass,
 	       velocity[2],
 	       bearing,
 	       angle,
-	       nip_damage;
+	       nip_damage,
+	       grease_effect;
 	std::vector<black_hole *> holes;
+	std::vector<grease_trap *> grease;
 	std::vector<ant *> other_ants;
 	electric_bolt *tesla_bolt;
 	ant *tesla_target;

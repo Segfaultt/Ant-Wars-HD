@@ -159,7 +159,8 @@ int main()
 					jeff,
 					hipster,
 					moonboy,
-					arc;
+					arc,
+					greasy_boy;
 			int x,y;
 
 		public:
@@ -171,6 +172,7 @@ int main()
 				hipster.load_text("hipster ant", {0x50, 0xd0, 0x50}, "res/default/Cousine-Regular.ttf", 30);
 				moonboy.load_text("moonboy", {0x70, 0x70, 0x70}, "res/default/Cousine-Regular.ttf", 30);
 				arc.load_text("Mr. V", {0x70, 0x70, 0xb0}, "res/default/Cousine-Regular.ttf", 30);
+				greasy_boy.load_text("GREASY BOY", {0x70, 0xd0, 0x70}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -200,6 +202,9 @@ int main()
 						break;
 					case ARC:
 						arc.render(x - arc.get_width()/2, y);
+						break;
+					case GREASY_BOY:
+						greasy_boy.render(x - greasy_boy.get_width()/2, y);
 						break;
 				}
 			}
@@ -282,6 +287,10 @@ int main()
 						case MOONBOY:
 							right_ant_type = ARC;
 							break;
+						
+						case ARC:
+							right_ant_type = GREASY_BOY;
+							break;
 
 						default:
 							right_ant_type = YA_BOY;
@@ -310,6 +319,10 @@ int main()
 
 						case MOONBOY:
 							left_ant_type = ARC;
+							break;
+
+						case ARC:
+							left_ant_type = GREASY_BOY;
 							break;
 
 						default:
@@ -429,8 +442,8 @@ int main()
 			kill_count_texture.render((SCREEN_WIDTH - kill_count_texture.get_width())/2, SCREEN_HEIGHT - kill_count_texture.get_height() - 5);
 		} else if (ui_state == TWO_PLAYER_GAME) {//render game with two ants
 			right_ant->apply_physics();
-			right_ant->render();
 			left_ant->apply_physics();
+			right_ant->render();
 			left_ant->render();
 		} else if (ui_state == GAME_OVER) {
 			game_over.render(SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/4);

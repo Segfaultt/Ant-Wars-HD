@@ -3,12 +3,12 @@
 
 #define PI_OVER_180 0.017453293
 #define PYTHAG(a, b) sqrt(pow(a, 2) + pow(b, 2))
-#define STAMINA_REGEN 0.22
 #define ANT_REPEL_FORCE 100
 
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
 {
+	grease_effect = 1;
 	arc_turn = 0;
 	flip_timer = 0;
 	type = type_;
@@ -24,6 +24,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	turn_speed = 5;
 	health = 100;
 	stamina = 100;
+	stamina_regen = 0.22;
 	x = starting_x;
 	y = starting_y;
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
@@ -73,6 +74,11 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/the_arc.png");
 			speed *= 1.5;
 			break;
+
+		case GREASY_BOY:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
+			stamina_regen *= 1.2;
+			break;
 	};
 }
 
@@ -92,21 +98,21 @@ void ant::move(direction dir)
 	switch (dir) {
 		case FORWARDS:
 			if (guitar > 0) {
-				x += speed * 0.5 * cos(angle * PI_OVER_180);
-				y -= speed * 0.5 * sin(angle * PI_OVER_180);
+				x += grease_effect * speed * 0.5 * cos(angle * PI_OVER_180);
+				y -= grease_effect * speed * 0.5 * sin(angle * PI_OVER_180);
 			} else {
-				x += speed * cos(angle * PI_OVER_180);
-				y -= speed * sin(angle * PI_OVER_180);
+				x += grease_effect * speed * cos(angle * PI_OVER_180);
+				y -= grease_effect * speed * sin(angle * PI_OVER_180);
 			}
 			break;
 
 		case BACKWARDS:
 			if (guitar > 0) {
-				x -= speed * 0.5 * cos(angle * PI_OVER_180);
-				y += speed * 0.5 * sin(angle * PI_OVER_180);
+				x -= grease_effect * speed * 0.5 * cos(angle * PI_OVER_180);
+				y += grease_effect * speed * 0.5 * sin(angle * PI_OVER_180);
 			} else {
-				x -= speed * cos(angle * PI_OVER_180);
-				y += speed * sin(angle * PI_OVER_180);
+				x -= grease_effect * speed * cos(angle * PI_OVER_180);
+				y += grease_effect * speed * sin(angle * PI_OVER_180);
 			}
 			break;
 
@@ -267,8 +273,8 @@ void ant::apply_physics()
 		}
 	}
 
-	if (stamina <= 100 - STAMINA_REGEN) {//stamina regen cap
-		stamina += STAMINA_REGEN;
+	if (stamina <= 100 - stamina_regen) {//stamina regen cap
+		stamina += stamina_regen * grease_effect;
 	}
 
 	//black hole child physics
@@ -287,6 +293,27 @@ void ant::apply_physics()
 		y_component = 0;
 		i->pull_ants(x, y, mass, x_component, y_component);
 		apply_force(x_component/4, y_component/4);
+	}
+
+	//apply grease
+	if (type == GREASY_BOY) {
+		for (ant *target_ant : other_ants) {
+			bool in_grease = false;
+			for (grease_trap *i : grease)
+				if (i->tick(target_ant->get_x() + 50, target_ant->get_y() + 50))
+					in_grease = true;
+			target_ant->set_grease_effect(in_grease);
+		}
+
+		bool in_grease = false;
+		for (grease_trap *i : grease)
+			if (i->tick(x + 50, y + 50))
+				in_grease = true;
+		if (in_grease) {
+			grease_effect = 2;
+		} else {
+			grease_effect = 1;
+		}
 	}
 }
 
@@ -368,6 +395,12 @@ void ant::ability()
 				srand(seed++);
 				arc_left = rand()%2;
 			}
+			break;
+		case GREASY_BOY:
+			if (stamina >= 60) {
+				stamina -= 60;
+				grease.push_back(new grease_trap(x + sprite.get_width()/2, y + sprite.get_height()/2));
+			}
 	}
 }
 
@@ -383,7 +416,7 @@ void ant::nip()
 			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
 				i->damage(nip_damage);
-				
+
 				//push targets
 				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
 				double x_component_unit_vector = (x - i->get_x()) / magnitude;
@@ -451,5 +484,16 @@ void ant::flip()
 			bearing -= 360;
 		angle = 450 - bearing;
 		flip_timer = TICKS_PER_FRAME/2;
+	}
+}
+
+void ant::set_grease_effect(bool on)
+{
+	if (type != GREASY_BOY) {
+		if (on) {
+			grease_effect = 0.5;
+		} else {
+			grease_effect = 1;
+		}
 	}
 }
