@@ -42,8 +42,7 @@ enum ui {
 };
 
 void add_new_score(unsigned int score, std::fstream& file, ant_type type)
-{
-	file.seekg(0, std::ios_base::end);
+{ file.seekg(0, std::ios_base::end);
 
 	std::string type_name;
 	switch (type) {
@@ -66,8 +65,11 @@ void add_new_score(unsigned int score, std::fstream& file, ant_type type)
 		case MOONBOY:
 			type_name = "Moonboy";
 			break;
+		case GREASY_BOY:
+			type_name = "Italian";
+			break;
 		default:
-			type_name = "Unkown";
+			type_name = "Unknown";
 			break;
 	}
 	time_t raw_time;
@@ -287,7 +289,7 @@ int main()
 						case MOONBOY:
 							right_ant_type = ARC;
 							break;
-						
+
 						case ARC:
 							right_ant_type = GREASY_BOY;
 							break;

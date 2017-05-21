@@ -311,7 +311,7 @@ void ant::apply_physics()
 				in_grease = true;
 		if (in_grease) {
 			grease_effect = 1.5;
-			damage(-0.1);
+			damage(-0.4);
 		} else {
 			grease_effect = 1;
 		}
@@ -341,8 +341,10 @@ void ant::damage(double damage)
 		if (type == MOONBOY)
 			damage *= 0.5;
 	}
-	health -= damage;
-	mass -= damage/150;
+	if (damage > 0 | health - damage <= 100) {
+		health -= damage;
+		mass -= damage/150;
+	}
 	if (health < 0) {
 		alive = false;
 	}
