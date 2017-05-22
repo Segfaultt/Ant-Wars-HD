@@ -11,12 +11,14 @@ bot::bot(int x, int y, ant* new_target)
 	base->set_other_ants({target});
 
 	srand(seed++);
-	speed_talent = rand()%6;
-	base->change_speed(speed_talent/10 - 0.3);
+	speed_talent = rand()%16 - 8;
+	base->change_speed(speed_talent/10);
 	srand(seed++);
 	inteligence = rand()%15 + 1;
 	srand(seed++);
-	right_bias = rand()%20-10;
+	right_bias = rand()%24-12;
+	srand(seed++);
+	base->damage(rand()%50-25);
 }
 
 void bot::tick()

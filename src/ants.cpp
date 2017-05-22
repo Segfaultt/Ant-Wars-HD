@@ -62,7 +62,8 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			speed *= 0.8;
 			turn_speed *= 0.8;
 			health *= 0.5;
-			nip_damage *= 0.7;
+			nip_damage *= 0.8;
+			stamina_regen *= 0.5;
 			break;
 
 		case MOONBOY:
@@ -77,7 +78,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 
 		case GREASY_BOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
-			speed *= 0.8;
+			speed *= 0.7;
 			break;
 	};
 }
@@ -424,7 +425,7 @@ void ant::nip()
 				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
 				double x_component_unit_vector = (x - i->get_x()) / magnitude;
 				double y_component_unit_vector = (y - i->get_y()) / magnitude;
-				const double push_force = -3;
+				const double push_force = -10;
 				i->apply_force(push_force * x_component_unit_vector, push_force * y_component_unit_vector);
 
 			}
