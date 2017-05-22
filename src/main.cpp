@@ -68,6 +68,9 @@ void add_new_score(unsigned int score, std::fstream& file, ant_type type)
 		case GREASY_BOY:
 			type_name = "Italian";
 			break;
+		case WEEB:
+			type_name = "Weeb";
+			break;
 		default:
 			type_name = "Unknown";
 			break;
@@ -162,7 +165,8 @@ int main()
 					hipster,
 					moonboy,
 					arc,
-					greasy_boy;
+					greasy_boy,
+					weeb;
 			int x,y;
 
 		public:
@@ -175,6 +179,7 @@ int main()
 				moonboy.load_text("moonboy", {0x70, 0x70, 0x70}, "res/default/Cousine-Regular.ttf", 30);
 				arc.load_text("Mr. V", {0x70, 0x70, 0xb0}, "res/default/Cousine-Regular.ttf", 30);
 				greasy_boy.load_text("GREASY BOY", {0x70, 0xd0, 0x70}, "res/default/Cousine-Regular.ttf", 30);
+				weeb.load_text("weeb", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -207,6 +212,9 @@ int main()
 						break;
 					case GREASY_BOY:
 						greasy_boy.render(x - greasy_boy.get_width()/2, y);
+						break;
+					case WEEB:
+						weeb.render(x - weeb.get_width()/2, y);
 						break;
 				}
 			}
@@ -294,6 +302,10 @@ int main()
 							right_ant_type = GREASY_BOY;
 							break;
 
+						case GREASY_BOY:
+							right_ant_type = WEEB;
+							break;
+
 						default:
 							right_ant_type = YA_BOY;
 							break;
@@ -325,6 +337,10 @@ int main()
 
 						case ARC:
 							left_ant_type = GREASY_BOY;
+							break;
+
+						case GREASY_BOY:
+							left_ant_type = WEEB;
 							break;
 
 						default:

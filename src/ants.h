@@ -18,7 +18,8 @@ enum ant_type {
 	BOT,
 	MOONBOY,
 	ARC,
-	GREASY_BOY
+	GREASY_BOY,
+	WEEB
 };
 
 class ant {
@@ -76,7 +77,8 @@ class ant {
 	texture_wrapper sprite;
 	texture_wrapper nip_texture;
 	texture_wrapper guitar_texture;
-	int nip_out_timer, laser_on, guitar, flip_timer, arc_turn;
+	texture_wrapper tenticle_texture;
+	int nip_out_timer, laser_on, guitar, tenticles_out, flip_timer, arc_turn;
 };
 
 #include "ants.cpp"

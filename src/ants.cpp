@@ -2,12 +2,14 @@
 #include "black_hole.h"
 
 #define PI_OVER_180 0.017453293
+#define ONE_EIGHTY_OVER_PI 57.29578
 #define PYTHAG(a, b) sqrt(pow(a, 2) + pow(b, 2))
 #define ANT_REPEL_FORCE 100
 
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
 {
+	tenticles_out = 0;
 	grease_effect = 1;
 	arc_turn = 0;
 	flip_timer = 0;
@@ -28,7 +30,6 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	x = starting_x;
 	y = starting_y;
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
-	guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
 	tesla_bolt = NULL;
 	tesla_target = NULL;
 
@@ -54,6 +55,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/jeff.png");
 			break;
 		case HIPSTER:
+			guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
 			speed *= 1.2;
 			break;
@@ -79,6 +81,11 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		case GREASY_BOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
 			speed *= 0.7;
+			break;
+
+		case WEEB:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/weeb.png");
+			tenticle_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/tenticles.png");
 			break;
 	};
 }
@@ -214,6 +221,38 @@ void ant::render()
 			}
 			laser_on--;
 		}
+	}
+
+	if (type == WEEB && tenticles_out > 0) {
+		tenticle_texture.render(80 * cos(angle * PI_OVER_180) + x, -80 * sin(angle * PI_OVER_180) + y, bearing);
+		double angle_to_target, angle_difference, y_component, x_component;
+		for (ant *i : other_ants) {
+			x_component = x - i->get_x();
+			y_component = -1 * (y - i->get_y());
+			angle_to_target = atan(y_component/x_component) * ONE_EIGHTY_OVER_PI;	
+			if (x_component < 0)
+				angle_to_target += 180;
+			if (x_component > 0 && y_component < 0)
+				angle_to_target += 360;
+
+			angle_difference = angle - angle_to_target + 180;
+			if (angle_difference > 180)
+				angle_difference = angle_difference - 360;
+
+			if (abs(angle_difference) < 40 && PYTHAG(x_component, y_component) < 155) {
+				i->damage(10);
+				
+				//push targets
+				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
+				double x_component_unit_vector = (x - i->get_x()) / magnitude;
+				double y_component_unit_vector = (y - i->get_y()) / magnitude;
+				const double push_force = -7;
+				i->apply_force(push_force * x_component_unit_vector, push_force * y_component_unit_vector);
+			}
+
+		}
+
+		tenticles_out--;
 	}
 
 	sprite.render(x, y, bearing);
@@ -405,6 +444,14 @@ void ant::ability()
 				stamina -= 70;
 				grease.push_back(new grease_trap(x + sprite.get_width()/2, y + sprite.get_height()/2));
 			}
+			break;
+
+		case WEEB:
+			if (stamina >= 80) {
+				stamina -= 80;
+				tenticles_out = TICKS_PER_FRAME/2;
+			}
+			break;
 	}
 }
 
