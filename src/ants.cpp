@@ -86,6 +86,8 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		case WEEB:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/weeb.png");
 			tenticle_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/tenticles.png");
+			speed *= 1.2;
+			turn_speed *= 1.5;
 			break;
 	};
 }
@@ -327,12 +329,6 @@ void ant::apply_physics()
 			i->pull_ants(each_ant->get_x(), each_ant->get_y(), each_ant->get_mass(), x_component, y_component);
 			each_ant->apply_force(x_component, y_component);
 		}
-
-		//pull self
-		x_component = 0;//force from black hole passed by reference
-		y_component = 0;
-		i->pull_ants(x, y, mass, x_component, y_component);
-		apply_force(x_component/4, y_component/4);
 	}
 
 	//apply grease
@@ -380,6 +376,8 @@ void ant::damage(double damage)
 			damage *= 1.5;
 		if (type == MOONBOY)
 			damage *= 0.5;
+		if (type == WEEB)
+			damage *= 1.6;
 	}
 	if (damage > 0 | health - damage <= 100) {
 		health -= damage;
@@ -406,10 +404,10 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-			if (stamina > 40) {
+			if (stamina > 60) {
 				black_hole *hole = new black_hole(x, y, angle);
 				holes.push_back(hole);
-				stamina -= 40;
+				stamina -= 60;
 			}
 			break;
 
@@ -447,8 +445,8 @@ void ant::ability()
 			break;
 
 		case WEEB:
-			if (stamina >= 80) {
-				stamina -= 80;
+			if (stamina >= 60) {
+				stamina -= 60;
 				tenticles_out = TICKS_PER_FRAME/2;
 			}
 			break;

@@ -5,7 +5,7 @@ black_hole::black_hole(int x_coord, int y_coord, double angle_)
 	x = x_coord;
 	y = y_coord;
 
-	const int launch_force = 20;
+	const int launch_force = 10;
 	#define PI_OVER_180 0.017453293
 	velocity[0] = launch_force * cos(angle_ * PI_OVER_180);
 	velocity[1] = -launch_force * sin(angle_ * PI_OVER_180);
@@ -21,11 +21,11 @@ void black_hole::render()
 
 void black_hole::pull_ants(int target_x, int target_y, double target_mass, double &x_component, double &y_component)
 {
-	const int G = 200;
-	double distance;
-	distance = sqrt(pow(x - target_x, 2) + pow(y - target_y, 2));
-	x_component = (G * target_mass * (x - target_x))/pow(distance, 2);
-	y_component = (G * target_mass * (y - target_y))/pow(distance, 2);
+	const int G = 150;
+	double distance_sqrd;
+	distance_sqrd = pow(x - target_x, 2) + pow(y - target_y, 2);
+	x_component = (G * target_mass * (x - target_x))/distance_sqrd;
+	y_component = (G * target_mass * (y - target_y))/distance_sqrd;
 
 	x += velocity[0];
 	y += velocity[1];
@@ -40,5 +40,5 @@ void black_hole::pull_ants(int target_x, int target_y, double target_mass, doubl
 
 bool black_hole::is_alive()
 {
-	return angle < 1500;
+	return angle < 4500;
 }
