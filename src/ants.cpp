@@ -4,7 +4,7 @@
 #define PI_OVER_180 0.017453293
 #define ONE_EIGHTY_OVER_PI 57.29578
 #define PYTHAG(a, b) sqrt(pow(a, 2) + pow(b, 2))
-#define ANT_REPEL_FORCE 100
+#define ANT_REPEL_FORCE 1
 
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
@@ -95,12 +95,6 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 void ant::set_other_ants(std::vector<ant *> other_ants_)
 {
 	other_ants = other_ants_;
-}
-
-ant::~ant()
-{
-	for (black_hole *i : holes)
-		i->~black_hole();
 }
 
 void ant::move(direction dir)
@@ -299,19 +293,34 @@ void ant::apply_physics()
 	x += velocity[0];
 	y += velocity[1];
 
+	//apply angular momentum
+	bearing -= angular_momentum;
+	if (bearing < 0)
+		bearing += 360;
+	angle = 450 - bearing;
+	if (angle > 360)
+		angle -= 360;
+
+
+
 	//friction/air resistance
 	velocity[0] *= 0.9;
 	velocity[1] *= 0.9;
+	angular_momentum *= 0.9;
 	if (abs(velocity[0]) < 0.0001)
 		velocity[0] = 0;
 	if (abs(velocity[1]) < 0.0001)
-		velocity[1] = 0; //ants repel
+		velocity[1] = 0; 
+	if (abs(angular_momentum) < 0.0001)
+		angular_momentum = 0;
+	
+	//ants repel
 	double distance;
 	for (ant *i : other_ants) {
 		distance = sqrt(pow(i->get_x() - x, 2) + pow(i->get_y() - y, 2));
-		if (distance < 90) {
-			velocity[0] -= ANT_REPEL_FORCE * (i->get_x() - x)/pow(distance, 3);
-			velocity[1] -= ANT_REPEL_FORCE * (i->get_y() - y)/pow(distance, 3);
+		if (distance < 50) {
+			velocity[0] -= ANT_REPEL_FORCE * (i->get_x() - x)/distance;
+			velocity[1] -= ANT_REPEL_FORCE * (i->get_y() - y)/distance;
 		}
 	}
 
@@ -320,14 +329,15 @@ void ant::apply_physics()
 	}
 
 	//black hole child physics
-	double x_component, y_component;
+	double x_component, y_component, rotation;
 	for (black_hole *i : holes) {
 		//pull other ants
 		for (ant *each_ant : other_ants) {
 			x_component = 0;//force from black hole passed by reference
 			y_component = 0;
-			i->pull_ants(each_ant->get_x(), each_ant->get_y(), each_ant->get_mass(), x_component, y_component);
+			i->pull_ants(each_ant->get_x(), each_ant->get_y(), each_ant->get_mass(), x_component, y_component, rotation);
 			each_ant->apply_force(x_component, y_component);
+			each_ant->apply_rotational_force(rotation);
 		}
 	}
 
@@ -551,4 +561,9 @@ void ant::set_grease_effect(bool on)
 void ant::change_speed(double value)
 {
 	speed += value;
+}
+
+void ant::apply_rotational_force(double angular_force)
+{
+	angular_momentum += angular_force;
 }

@@ -26,7 +26,6 @@ class ant {
 	public:
 	ant(ant_type type_, int starting_x, int starting_y);
 	void set_other_ants(std::vector<ant *> other_ants_);
-	~ant();
 
 	//actions
 	void nip();
@@ -34,6 +33,7 @@ class ant {
 	void tesla();
 	void move(direction);
 	void apply_force(double x_component, double y_component);
+	void apply_rotational_force(double angular_force);
 	void apply_physics();
 	void render();
 	void damage(double damage);
@@ -61,6 +61,7 @@ class ant {
 	       stamina_regen,
 	       mass,
 	       velocity[2],
+	       angular_momentum,
 	       bearing,
 	       angle,
 	       nip_damage,

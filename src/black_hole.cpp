@@ -19,13 +19,18 @@ void black_hole::render()
 	angle += 10;
 }
 
-void black_hole::pull_ants(int target_x, int target_y, double target_mass, double &x_component, double &y_component)
+void black_hole::pull_ants(int target_x, int target_y, double target_mass, double &x_component, double &y_component, double &rotation)
 {
 	const int G = 150;
 	double distance_sqrd;
 	distance_sqrd = pow(x - target_x, 2) + pow(y - target_y, 2);
 	x_component = (G * target_mass * (x - target_x))/distance_sqrd;
 	y_component = (G * target_mass * (y - target_y))/distance_sqrd;
+	
+	rotation = 0;
+	if (distance_sqrd < 100) {
+		rotation = 1000/distance_sqrd;
+	}
 
 	x += velocity[0];
 	y += velocity[1];
