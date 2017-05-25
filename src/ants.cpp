@@ -9,6 +9,7 @@
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
 {
+	angular_momentum = 0;
 	tenticles_out = 0;
 	grease_effect = 1;
 	arc_turn = 0;
@@ -82,6 +83,8 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		case GREASY_BOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
 			speed *= 0.7;
+			nip_damage *= 0.8;
+			mass *= 0.8;
 			break;
 
 		case WEEB:
@@ -305,9 +308,9 @@ void ant::apply_physics()
 
 
 	//friction/air resistance
-	velocity[0] += abs(velocity[0])/velocity[0] * -0.3 / mass;
-	velocity[1] += abs(velocity[1])/velocity[1] * -0.3 / mass;
-	angular_momentum *= 0.98 / mass;
+	velocity[0] += abs(velocity[0])/velocity[0] * -0.5 / mass;
+	velocity[1] += abs(velocity[1])/velocity[1] * -0.5 / mass;
+	angular_momentum += abs(angular_momentum)/angular_momentum * -0.6 / mass;
 	if (abs(velocity[0]) < 0.0001)
 		velocity[0] = 0;
 	if (abs(velocity[1]) < 0.0001)
@@ -475,7 +478,7 @@ void ant::nip()
 		for (ant *i : other_ants) {
 			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
-				i->damage(nip_damage);
+				i->damage(nip_damage * grease_effect);
 
 				//push targets
 				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
