@@ -71,6 +71,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		case MOONBOY:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/moonboy.png");
 			nip_damage *= 1.5;
+			mass *= 2;
 			break;
 
 		case ARC:
@@ -304,9 +305,9 @@ void ant::apply_physics()
 
 
 	//friction/air resistance
-	velocity[0] *= 0.9;
-	velocity[1] *= 0.9;
-	angular_momentum *= 0.9;
+	velocity[0] += abs(velocity[0])/velocity[0] * -0.3 / mass;
+	velocity[1] += abs(velocity[1])/velocity[1] * -0.3 / mass;
+	angular_momentum *= 0.98 / mass;
 	if (abs(velocity[0]) < 0.0001)
 		velocity[0] = 0;
 	if (abs(velocity[1]) < 0.0001)
