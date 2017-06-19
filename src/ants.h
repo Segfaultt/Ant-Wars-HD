@@ -19,7 +19,8 @@ enum ant_type {
 	MOONBOY,
 	ARC,
 	GREASY_BOY,
-	WEEB
+	WEEB,
+	MATT
 };
 
 class ant {

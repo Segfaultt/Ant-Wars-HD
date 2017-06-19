@@ -71,6 +71,9 @@ void add_new_score(unsigned int score, std::fstream& file, ant_type type)
 		case WEEB:
 			type_name = "Weeb";
 			break;
+		case MATT:
+			type_name= "Matt the fidget spinner";
+			break;
 		default:
 			type_name = "Unknown";
 			break;
@@ -166,7 +169,8 @@ int main()
 					moonboy,
 					arc,
 					greasy_boy,
-					weeb;
+					weeb,
+					matt;
 			int x,y;
 
 		public:
@@ -180,6 +184,7 @@ int main()
 				arc.load_text("Mr. V", {0x70, 0x70, 0xb0}, "res/default/Cousine-Regular.ttf", 30);
 				greasy_boy.load_text("GREASY BOY", {0x70, 0xd0, 0x70}, "res/default/Cousine-Regular.ttf", 30);
 				weeb.load_text("weeb", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
+				matt.load_text("Fidget spinner", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -215,6 +220,9 @@ int main()
 						break;
 					case WEEB:
 						weeb.render(x - weeb.get_width()/2, y);
+						break;
+					case MATT:
+						matt.render(x - matt.get_width()/2, y);
 						break;
 				}
 			}
@@ -306,6 +314,10 @@ int main()
 							right_ant_type = WEEB;
 							break;
 
+						case WEEB:
+							right_ant_type = MATT;
+							break;
+
 						default:
 							right_ant_type = YA_BOY;
 							break;
@@ -341,6 +353,10 @@ int main()
 
 						case GREASY_BOY:
 							left_ant_type = WEEB;
+							break;
+
+						case WEEB:
+							left_ant_type = MATT;
 							break;
 
 						default:

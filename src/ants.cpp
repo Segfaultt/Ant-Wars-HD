@@ -93,6 +93,10 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			speed *= 1.2;
 			turn_speed *= 1.5;
 			break;
+		case MATT:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/fidget_spinner.png");
+			speed *= 1.4;
+			break;
 	};
 }
 
@@ -126,19 +130,29 @@ void ant::move(direction dir)
 
 
 		case LEFT:
-			bearing -= turn_speed;
-			if (bearing < 0)
-				bearing += 360;
-			angle = 450 - bearing;
-			if (angle > 360)
-				angle -= 360;
+			if (type == MATT && angular_momentum < 30) {
+				angular_momentum += 1;
+			} else {
+				bearing -= turn_speed;
+				if (bearing < 0)
+					bearing += 360;
+				angle = 450 - bearing;
+				if (angle > 360)
+					angle -= 360;
+			}
 			break;
 
 		case RIGHT:
-			bearing += turn_speed;
-			if (bearing > 360)
-				bearing -= 360;
-			angle = 450 - bearing;
+			if (type == MATT && angular_momentum > -30) {
+				angular_momentum -= 1;
+			} else {
+				bearing += turn_speed;
+				if (bearing > 360)
+					bearing -= 360;
+				angle = 450 - bearing;
+				if (angle > 360)
+					angle -= 360;
+			}
 			break;
 	}
 }
@@ -241,7 +255,7 @@ void ant::render()
 
 			if (abs(angle_difference) < 40 && PYTHAG(x_component, y_component) < 155) {
 				i->damage(10);
-				
+
 				//push targets
 				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
 				double x_component_unit_vector = (x - i->get_x()) / magnitude;
@@ -317,7 +331,7 @@ void ant::apply_physics()
 		velocity[1] = 0; 
 	if (abs(angular_momentum) < 0.0001)
 		angular_momentum = 0;
-	
+
 	//ants repel
 	double distance;
 	for (ant *i : other_ants) {
