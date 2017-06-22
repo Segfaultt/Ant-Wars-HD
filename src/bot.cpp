@@ -39,7 +39,7 @@ void bot::tick()
 	if (angle_difference > 180)
 		angle_difference = angle_difference - 360;
 	double distance = sqrt(pow(x_component, 2) + pow(y_component, 2));
-	double stamina_ratio = base->get_stmaina() * 100 / target->get_stmaina();
+	double stamina_ratio = base->get_stamina() * 100 / target->get_stamina();
 
 	//apply behaviour
 	switch (state) {

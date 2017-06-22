@@ -50,11 +50,11 @@ class ant {
 	int get_y();
 	double get_mass();
 	double get_health();
-	double get_stmaina();
+	double get_stamina();
 	double get_angle();
 	bool is_alive();
 
-	private:
+	protected:
 	double speed,
 	       turn_speed,
 	       health,

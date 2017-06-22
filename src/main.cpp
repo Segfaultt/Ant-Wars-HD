@@ -20,17 +20,20 @@
 #define SCREEN_HEIGHT 768
 #define FPS 60
 #define TICKS_PER_FRAME 1000/FPS
+#define PI 3.1415927
 
 SDL_Renderer* renderer = NULL;
 SDL_Window* window = NULL;
 
 int seed = time(NULL);
+int innovation_number;
 
 bool quit = false; //looping flag
 
 //other files
 #include "texture_wrapper.h"
 #include "ants.h"
+#include "neat_ants.h"
 #include "bot.h"
 #include "timer.h"
 
@@ -38,7 +41,9 @@ enum ui {
 	MENU,
 	ONE_PLAYER_GAME,
 	TWO_PLAYER_GAME,
-	GAME_OVER
+	GAME_OVER,
+	NEAT_MENU,
+	NEAT_GAME
 };
 
 void add_new_score(unsigned int score, std::fstream& file, ant_type type)
@@ -152,8 +157,14 @@ int main()
 	title.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/title.png");
 
 	//load options
-	texture_wrapper options;
-	options.load_text("Press 2 to start a two player game\n Press 1 to start a signle player game", {0xf0, 0xa0, 0xf0, 0xff}, "res/default/Cousine-Regular.ttf", 30);
+	SDL_Color options_colour = {0xf6, 0x0a, 0x06, 0xff};
+	const int options_size = 20;
+	texture_wrapper option2, option1, option3;
+	option3.load_text("Press 3 to start a NEAT ant simulation", options_colour, "res/default/Cousine-Regular.ttf", options_size);
+	option2.load_text("Press 2 to start a two player game", options_colour, "res/default/Cousine-Regular.ttf", options_size);
+	option1.load_text("Press 1 to start a single player game", options_colour, "res/default/Cousine-Regular.ttf", options_size);
+	texture_wrapper neat_option1;
+	neat_option1.load_text("Press 1 to start a new simulation", options_colour, "res/default/Cousine-Regular.ttf", options_size);
 
 	//fps count on screen
 	bool show_fps = false;
@@ -228,8 +239,6 @@ int main()
 			}
 	};
 
-
-
 	//load end screen
 	texture_wrapper game_over;
 	game_over.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/game_over.png");
@@ -253,6 +262,9 @@ int main()
 	if (!single_player_scores.is_open()) {
 		single_player_scores.open("./high_scores.txt", std::ios_base::trunc);
 	}
+
+	//neat set up
+	neat_ant *gladiator1 = NULL, *gladiator2 = NULL;
 
 	//=====main loop=====
 	bool quit = false;
@@ -279,10 +291,21 @@ int main()
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_2) {
 				ui_state = TWO_PLAYER_GAME;
 				left_ant = new ant(left_ant_type, 50, SCREEN_HEIGHT/2);
-				right_ant = new ant(right_ant_type, SCREEN_WIDTH-100, SCREEN_HEIGHT/2);
+				right_ant = new ant(right_ant_type, SCREEN_WIDTH-150, SCREEN_HEIGHT/2);
 
 				left_ant->set_other_ants({right_ant});
 				right_ant->set_other_ants({left_ant});
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_3) {
+				ui_state = NEAT_MENU;
+			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_1) {
+				ui_state = NEAT_GAME;
+				gladiator1 =  new neat_ant(LUCA, 50, SCREEN_HEIGHT/2);
+				gladiator2 =  new neat_ant(LUCA, SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
+
+				gladiator1->set_other_ants({gladiator2});
+				gladiator2->set_other_ants({gladiator1});
+
+				innovation_number = 0;
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_0) {
 				if (right_ant_type_timer <= 0) {
 					switch (right_ant_type) {
@@ -462,7 +485,9 @@ int main()
 			if (right_ant_type_timer > 0)
 				right_ant_type_timer--;
 			title.render(SCREEN_WIDTH/2 - 250, 0);
-			options.render((SCREEN_WIDTH - options.get_width())/2, SCREEN_HEIGHT/2);
+			option1.render((SCREEN_WIDTH - option1.get_width())/2, SCREEN_HEIGHT/2);
+			option2.render((SCREEN_WIDTH - option2.get_width())/2, SCREEN_HEIGHT/2 + option1.get_height());
+			option3.render((SCREEN_WIDTH - option3.get_width())/2, SCREEN_HEIGHT/2 + option1.get_height() + option2.get_height());
 			right_ant_chooser.render(right_ant_type);
 			left_ant_chooser.render(left_ant_type);
 		} else if (ui_state == ONE_PLAYER_GAME) {//render game with one ant
@@ -479,6 +504,8 @@ int main()
 			left_ant->apply_physics();
 			right_ant->render();
 			left_ant->render();
+		} else if (ui_state == NEAT_MENU) {
+			neat_option1.render((SCREEN_WIDTH - option1.get_width())/2, SCREEN_HEIGHT/2);
 		} else if (ui_state == GAME_OVER) {
 			game_over.render(SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/4);
 			if (left_ant != NULL && right_ant != NULL) {
@@ -497,22 +524,27 @@ int main()
 				right_ant = NULL;
 			}
 			bots.clear();
+		} else if (ui_state == NEAT_GAME) {
+			gladiator1->tick();
+			gladiator2->tick();
 		}
 
 		//frame cap
-		if (fps_timer.get_time() > 1000) {
-			fps = frames/(fps_timer.get_time() / 1000);
-			//fps count
-			if (show_fps) {
-				fps_count.load_text(std::to_string((int)fps), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
-				fps_count.render(0, 0);
-			}
+		if (ui_state != NEAT_GAME) {
+			if (fps_timer.get_time() > 1000) {
+				fps = frames/(fps_timer.get_time() / 1000);
+				//fps count
+				if (show_fps) {
+					fps_count.load_text(std::to_string((int)fps), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+					fps_count.render(0, 0);
+				}
 
+			}
+			if (TICKS_PER_FRAME > cap_timer.get_time()) {
+				SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
+			}
+			frames++;
 		}
-		if (TICKS_PER_FRAME > cap_timer.get_time()) {
-			SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
-		}
-		frames++;
 
 		//render
 		SDL_RenderPresent(renderer);

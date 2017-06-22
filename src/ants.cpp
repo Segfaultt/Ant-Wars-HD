@@ -202,6 +202,10 @@ void ant::render()
 		double y_gradient = sin(angle * PI_OVER_180);
 		thickLineRGBA(renderer, 45 * x_gradient + x + 50, -45 * y_gradient + y + 50, (SCREEN_WIDTH + SCREEN_HEIGHT) * x_gradient + x + 50, -1 *(SCREEN_WIDTH + SCREEN_HEIGHT) * y_gradient + y + 50, 9, 0x97, 0x00, 0x00, 0xff);
 
+		double m = atan(angle * PI_OVER_180);
+		double c = y - m * x;
+
+		std::cout << "y = " << m << "x + " << c << std::endl;
 		//check if hit
 		for (ant *i : other_ants) {
 			double y_difference, x_difference;
@@ -547,7 +551,7 @@ double ant::get_health()
 	return health;
 }
 
-double ant::get_stmaina()
+double ant::get_stamina()
 {
 	return stamina;
 }
