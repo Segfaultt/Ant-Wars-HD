@@ -27,6 +27,7 @@ SDL_Window* window = NULL;
 
 int seed = time(NULL);
 int innovation_number;
+int neuron_id;
 
 bool quit = false; //looping flag
 
@@ -147,6 +148,7 @@ int main()
 	};
 
 	//=====Menu preparation=====
+                //clear renderer
 	//load background
 	ui ui_state = MENU;
 	background_texture background;
@@ -277,7 +279,7 @@ int main()
 		cap_timer.start();
 		//=====input events=====
 		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT)
+			if (e.type == SDL_QUIT | e.key.keysym.sym == SDLK_ESCAPE)
 				quit = true;
 			if (e.key.keysym.sym == SDLK_f)
 				show_fps = true; //!show_fps;
@@ -299,13 +301,16 @@ int main()
 				ui_state = NEAT_MENU;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_1) {
 				ui_state = NEAT_GAME;
-				gladiator1 =  new neat_ant(LUCA, 50, SCREEN_HEIGHT/2);
-				gladiator2 =  new neat_ant(LUCA, SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
+				innovation_number = 0;
+				neuron_id = 0;
 
+				gladiator1 =  new neat_ant(LUCA, SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
+				gladiator2 =  new neat_ant(LUCA, 50,SCREEN_HEIGHT/2);
 				gladiator1->set_other_ants({gladiator2});
 				gladiator2->set_other_ants({gladiator1});
 
-				innovation_number = 0;
+				gladiator2->display_brain();
+				gladiator1->display_brain();
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_0) {
 				if (right_ant_type_timer <= 0) {
 					switch (right_ant_type) {
@@ -548,6 +553,23 @@ int main()
 
 		//render
 		SDL_RenderPresent(renderer);
+	}
+
+	if (left_ant != NULL) {
+		delete left_ant;
+		left_ant = NULL;
+	}
+	if (right_ant != NULL) {
+		delete right_ant;
+		right_ant = NULL;
+	}
+	if (gladiator1 != NULL) {
+		delete gladiator1;
+		gladiator1 = NULL;
+	}
+	if (gladiator2 != NULL) {
+		delete gladiator2;
+		gladiator2 = NULL;
 	}
 
 	single_player_scores.close();

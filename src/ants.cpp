@@ -137,7 +137,7 @@ void ant::move(direction dir)
 				if (bearing < 0)
 					bearing += 360;
 				angle = 450 - bearing;
-				if (angle > 360)
+				if (angle >= 360)
 					angle -= 360;
 			}
 			break;
@@ -147,10 +147,10 @@ void ant::move(direction dir)
 				angular_momentum -= 1;
 			} else {
 				bearing += turn_speed;
-				if (bearing > 360)
+				if (bearing >= 360)
 					bearing -= 360;
 				angle = 450 - bearing;
-				if (angle > 360)
+				if (angle >= 360)
 					angle -= 360;
 			}
 			break;
@@ -320,7 +320,7 @@ void ant::apply_physics()
 	if (bearing < 0)
 		bearing += 360;
 	angle = 450 - bearing;
-	if (angle > 360)
+	if (angle >= 360)
 		angle -= 360;
 
 
@@ -588,4 +588,10 @@ void ant::change_speed(double value)
 void ant::apply_rotational_force(double angular_force)
 {
 	angular_momentum += angular_force;
+}
+
+void ant::set_position(int new_x, int new_y)
+{
+	x = new_x;
+	y = new_y;
 }

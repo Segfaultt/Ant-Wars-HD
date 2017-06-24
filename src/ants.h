@@ -20,7 +20,8 @@ enum ant_type {
 	ARC,
 	GREASY_BOY,
 	WEEB,
-	MATT
+	MATT,
+	NO_OF_ANT_TYPE
 };
 
 class ant {
@@ -40,6 +41,7 @@ class ant {
 	void damage(double damage);
 	void check_edge();
 	void flip();
+	void set_position(int new_x, int new_y);
 
 	//setters
 	void set_grease_effect(bool on);
