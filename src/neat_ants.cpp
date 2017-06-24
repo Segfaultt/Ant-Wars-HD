@@ -7,7 +7,7 @@
 //=====Neuron=====
 neuron::neuron()
 {
-
+	bias = 0;
 }
 
 double neuron::get_value()
@@ -45,7 +45,7 @@ bool neuron::operator<(const neuron& other)
 void neuron::display_synapses(SDL_Renderer* &brain_renderer)
 {
 	for (int i = 0; i < synapses.size(); i++) {
-		int lum = (bias + 2) * 63.75;
+		int lum = weights[i] * 60 + 127.5;
 		if (lum > 0xff)
 			lum = 0xff;
 		if (lum < 0)
@@ -71,23 +71,32 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 	//set all nodes to default
 	for (int i = 0; i < 7; i++) {
 		output_layer[i].id = i;
-		output_layer[i].bias = 0;
 		output_layer[i].x = i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14;
 		output_layer[i].y = NEURON_RADIUS + 5;
 	}
 	for (int i = 0; i < 13; i++) {
-		input_neurons[i].bias = 0;
 		input_neurons[i].computed = true;
 		input_neurons[i].id = i + 7;
 		input_neurons[i].x = i * ANT_BRAIN_WINDOW_WIDTH/13 + ANT_BRAIN_WINDOW_WIDTH/26;
 		input_neurons[i].y = ANT_BRAIN_WINDOW_HEIGHT - NEURON_RADIUS - 5;
 	}
+	for (int i = 0; i < hidden_neurons.size(); i++) {
+		hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());
+		hidden_neurons[i]->y = ANT_BRAIN_WINDOW_HEIGHT/2;
+	}
 
 	//test brain
+	hidden_neurons.push_back(new neuron);
+	hidden_neurons[0]->bias = -0.5;
+	hidden_neurons[0]->add_synapse(&input_neurons[0], 1);
 	output_layer[4].bias = -1;
-	output_layer[4].add_synapse(&input_neurons[0], 2);
+	output_layer[4].add_synapse(hidden_neurons[0], 2);
 	output_layer[3].bias = 1;
-	output_layer[3].add_synapse(&input_neurons[0], -2);
+	output_layer[3].add_synapse(hidden_neurons[0], -2);
+	hidden_neurons.push_back(new neuron);
+	hidden_neurons[1]->add_synapse(&input_neurons[2], -3);
+	output_layer[0].add_synapse(hidden_neurons[1], 1);
+	output_layer[0].bias = -0.1;
 }
 
 neat_ant::~neat_ant()
@@ -185,6 +194,13 @@ void neat_ant::tick()
 			output_layer[i].display_synapses(brain_renderer);
 		}
 
+		for (neuron *i : hidden_neurons) {
+			int lum = i->get_value() * 0xff;
+			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, lum, lum, lum, 0xff);
+			circleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, 0, 0, 0, 0xff);
+		}
+
+
 		SDL_RenderPresent(brain_renderer);
 	}
 }
@@ -205,6 +221,12 @@ void neat_ant::display_brain()
 	brain_window = SDL_CreateWindow("ant brain", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ANT_BRAIN_WINDOW_WIDTH, ANT_BRAIN_WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 	brain_renderer = SDL_CreateRenderer(brain_window, -1, SDL_RENDERER_ACCELERATED);
 	window_open = true;
+	
+	//hidden node positions
+	for (int i = 0; i < hidden_neurons.size(); i++) {
+		hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());
+		hidden_neurons[i]->y = ANT_BRAIN_WINDOW_HEIGHT/2;
+	}
 }
 
 neat_ant& cross_over(neat_ant mother, neat_ant father)
