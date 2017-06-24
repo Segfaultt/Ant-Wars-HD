@@ -93,10 +93,6 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 	output_layer[4].add_synapse(hidden_neurons[0], 2);
 	output_layer[3].bias = 1;
 	output_layer[3].add_synapse(hidden_neurons[0], -2);
-	hidden_neurons.push_back(new neuron);
-	hidden_neurons[1]->add_synapse(&input_neurons[2], -3);
-	output_layer[0].add_synapse(hidden_neurons[1], 1);
-	output_layer[0].bias = -0.1;
 }
 
 neat_ant::~neat_ant()
@@ -108,6 +104,15 @@ neat_ant::~neat_ant()
 		brain_renderer = NULL;
 		window_open = false;
 	}
+}
+
+double angle_addition(double angle, double addition)
+{
+	angle += addition;
+	if (angle >= 2*PI)
+		angle -= 2*PI;
+
+	return angle;
 }
 
 void neat_ant::tick()
@@ -145,7 +150,18 @@ void neat_ant::tick()
 	input_neurons[9].value = velocity[0]/100;
 	input_neurons[10].value = velocity[1]/100;
 	input_neurons[11].value = angular_momentum/100;
-	input_neurons[12].value = target->get_angle();
+	input_neurons[12].value = target->get_angle()/360;
+
+	//make it think it's always the left ant by inversing inputs
+	if (flipped) {
+		input_neurons[0].value = 1 - input_neurons[0].value;
+		input_neurons[1].value = 1 - input_neurons[1].value;
+		input_neurons[2].value = angle_addition(angle * PI_OVER_180, PI)/(2*PI);
+		input_neurons[3].value = angle_addition(angle_to_target, PI)/(2*PI);
+		input_neurons[9].value *= -1;
+		input_neurons[10].value *= -1;
+		input_neurons[12].value = angle_addition(target->get_angle() * PI_OVER_180, PI)/(2*PI);
+	}
 
 	//get and apply outputs
 	if (output_layer[0].get_value() > 0.5)
@@ -233,7 +249,7 @@ void neat_ant::display_brain()
 	brain_window = SDL_CreateWindow("ant brain", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ANT_BRAIN_WINDOW_WIDTH, ANT_BRAIN_WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 	brain_renderer = SDL_CreateRenderer(brain_window, -1, SDL_RENDERER_ACCELERATED);
 	window_open = true;
-	
+
 	//hidden node positions
 	for (int i = 0; i < hidden_neurons.size(); i++) {
 		hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());

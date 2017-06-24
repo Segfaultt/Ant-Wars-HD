@@ -308,6 +308,8 @@ int main()
 				gladiator2 =  new neat_ant(LUCA, 50,SCREEN_HEIGHT/2);
 				gladiator1->set_other_ants({gladiator2});
 				gladiator2->set_other_ants({gladiator1});
+				gladiator1->flipped = true;
+				gladiator2->flipped = false;
 
 				gladiator2->display_brain();
 				gladiator1->display_brain();
