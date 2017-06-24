@@ -186,9 +186,14 @@ void neat_ant::tick()
 				lum = 0xff;
 			if (lum < 0)
 				lum = 0;
+			int bias_lum = output_layer[i].bias * 60 + 127.5;
+			if (bias_lum > 0xff)
+				bias_lum = 0xff;
+			if (bias_lum < 0)
+				bias_lum = 0;
 
 			filledCircleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14), NEURON_RADIUS + 5, NEURON_RADIUS, lum, lum, lum, 0xff);
-			circleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14), NEURON_RADIUS + 5, NEURON_RADIUS, 0, 0, 0, 0xff);
+			circleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14), NEURON_RADIUS + 5, NEURON_RADIUS, bias_lum, 0, (1 - bias_lum), 0xff);
 
 			//connections
 			output_layer[i].display_synapses(brain_renderer);
@@ -196,8 +201,15 @@ void neat_ant::tick()
 
 		for (neuron *i : hidden_neurons) {
 			int lum = i->get_value() * 0xff;
+
+			int bias_lum = i->bias * 60 + 127.5;
+			if (bias_lum > 0xff)
+				bias_lum = 0xff;
+			if (bias_lum < 0)
+				bias_lum = 0;
+
 			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, lum, lum, lum, 0xff);
-			circleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, 0, 0, 0, 0xff);
+			circleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, bias_lum, 0, (1 - bias_lum), 0xff);
 		}
 
 
