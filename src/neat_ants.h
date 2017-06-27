@@ -29,8 +29,9 @@ class neat_ant : public ant {
 		double get_fitness();
 		void add_result(double damage_given_in_match, double damage_taken_in_match);
 		void display_brain();
+		void close_display();
 		bool flipped;
-		friend neat_ant& cross_over(neat_ant mother, neat_ant father);
+		friend neat_ant& cross_over(neat_ant &mother, neat_ant &father);
 
 	private:
 		neuron output_layer[7];

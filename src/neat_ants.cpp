@@ -42,6 +42,11 @@ bool neuron::operator<(const neuron& other)
 	return id < other.id;
 }
 
+bool compare_neurons(neuron *first, neuron *second)
+{
+	return *first < *second;
+}
+
 void neuron::display_synapses(SDL_Renderer* &brain_renderer)
 {
 	for (int i = 0; i < synapses.size(); i++) {
@@ -51,9 +56,8 @@ void neuron::display_synapses(SDL_Renderer* &brain_renderer)
 		if (lum < 0)
 			lum = 0;
 
-		SDL_SetRenderDrawColor(brain_renderer, lum, lum, lum, 0xff);
-		SDL_RenderDrawLine(brain_renderer, x, y, synapses[i]->x, synapses[i]->y);
-		
+		thickLineRGBA(brain_renderer, x, y, synapses[i]->x, synapses[i]->y, round(abs(weights[i])), lum, lum, lum, 0xff);
+
 		//tree recursion
 		synapses[i]->display_synapses(brain_renderer);
 	}
@@ -67,6 +71,7 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 	window_open = false;
 	brain_window = NULL;
 	brain_renderer = NULL;
+	mutability = 6;
 
 	//set all nodes to default
 	for (int i = 0; i < 7; i++) {
@@ -80,30 +85,35 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 		input_neurons[i].x = i * ANT_BRAIN_WINDOW_WIDTH/13 + ANT_BRAIN_WINDOW_WIDTH/26;
 		input_neurons[i].y = ANT_BRAIN_WINDOW_HEIGHT - NEURON_RADIUS - 5;
 	}
+
+	hidden_neurons.push_back(new neuron);
+	hidden_neurons[0]->id = 20;
+	output_layer[3].bias = 1;
+	output_layer[3].add_synapse(hidden_neurons[0], -2);
+	output_layer[4].bias = -1;
+	output_layer[4].add_synapse(hidden_neurons[0], 2);
+	hidden_neurons[0]->bias = -0.5;
+	hidden_neurons[0]->add_synapse(&input_neurons[0], 1);
+
+	hidden_neurons.push_back(new neuron);
+	hidden_neurons[1]->id = 21;
+	hidden_neurons.push_back(new neuron);
+	hidden_neurons[2]->id = 22;
+	hidden_neurons[2]->add_synapse(hidden_neurons[0], 1);
+	hidden_neurons[2]->bias = 2.5;
+	output_layer[5].add_synapse(hidden_neurons[1], 1);
+	output_layer[5].add_synapse(hidden_neurons[2], 1);
+	output_layer[5].add_synapse(hidden_neurons[0], 1);
+
 	for (int i = 0; i < hidden_neurons.size(); i++) {
 		hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());
 		hidden_neurons[i]->y = ANT_BRAIN_WINDOW_HEIGHT/2;
 	}
-
-	//test brain
-	hidden_neurons.push_back(new neuron);
-	hidden_neurons[0]->bias = -0.5;
-	hidden_neurons[0]->add_synapse(&input_neurons[0], 1);
-	output_layer[4].bias = -1;
-	output_layer[4].add_synapse(hidden_neurons[0], 2);
-	output_layer[3].bias = 1;
-	output_layer[3].add_synapse(hidden_neurons[0], -2);
 }
 
 neat_ant::~neat_ant()
 {
-	if (window_open) {
-		SDL_DestroyWindow(brain_window);
-		SDL_DestroyRenderer(brain_renderer);
-		brain_window = NULL;
-		brain_renderer = NULL;
-		window_open = false;
-	}
+	close_display();
 }
 
 double angle_addition(double angle, double addition)
@@ -117,7 +127,6 @@ double angle_addition(double angle, double addition)
 
 void neat_ant::tick()
 {
-	SDL_Delay(100);
 	apply_physics();
 	render();
 	check_edge();
@@ -196,6 +205,19 @@ void neat_ant::tick()
 			circleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/13 + ANT_BRAIN_WINDOW_WIDTH/26), ANT_BRAIN_WINDOW_HEIGHT - NEURON_RADIUS - 5, NEURON_RADIUS, 0, 0, 0, 0xff);
 		}
 
+		for (neuron *i : hidden_neurons) {//hidden neurons
+			int lum = i->get_value() * 0xff;
+
+			int bias_lum = i->bias * 60 + 127.5;
+			if (bias_lum > 0xff)
+				bias_lum = 0xff;
+			if (bias_lum < 0)
+				bias_lum = 0;
+
+			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS + 1 + round(abs(i->bias)), bias_lum, 0, (1 - bias_lum), 0xff);
+			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, lum, lum, lum, 0xff);
+		}
+
 		for (int i = 0; i < 7; i++) {//output nodes
 			int lum = output_layer[i].get_value() * 0xff;
 			if (lum > 0xff)
@@ -208,26 +230,12 @@ void neat_ant::tick()
 			if (bias_lum < 0)
 				bias_lum = 0;
 
+			filledCircleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14), NEURON_RADIUS + 5, NEURON_RADIUS + 1 + round(abs(output_layer[i].bias)), bias_lum, 0, (1 - bias_lum), 0xff);
 			filledCircleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14), NEURON_RADIUS + 5, NEURON_RADIUS, lum, lum, lum, 0xff);
-			circleRGBA(brain_renderer, (i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14), NEURON_RADIUS + 5, NEURON_RADIUS, bias_lum, 0, (1 - bias_lum), 0xff);
 
 			//connections
 			output_layer[i].display_synapses(brain_renderer);
 		}
-
-		for (neuron *i : hidden_neurons) {
-			int lum = i->get_value() * 0xff;
-
-			int bias_lum = i->bias * 60 + 127.5;
-			if (bias_lum > 0xff)
-				bias_lum = 0xff;
-			if (bias_lum < 0)
-				bias_lum = 0;
-
-			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, lum, lum, lum, 0xff);
-			circleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, bias_lum, 0, (1 - bias_lum), 0xff);
-		}
-
 
 		SDL_RenderPresent(brain_renderer);
 	}
@@ -246,22 +254,37 @@ void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_m
 
 void neat_ant::display_brain()
 {
-	brain_window = SDL_CreateWindow("ant brain", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ANT_BRAIN_WINDOW_WIDTH, ANT_BRAIN_WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-	brain_renderer = SDL_CreateRenderer(brain_window, -1, SDL_RENDERER_ACCELERATED);
-	window_open = true;
+	if (!window_open) {
+		brain_window = SDL_CreateWindow("ant brain", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ANT_BRAIN_WINDOW_WIDTH, ANT_BRAIN_WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+		brain_renderer = SDL_CreateRenderer(brain_window, -1, SDL_RENDERER_ACCELERATED);
+		window_open = true;
 
-	//hidden node positions
-	for (int i = 0; i < hidden_neurons.size(); i++) {
-		hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());
-		hidden_neurons[i]->y = ANT_BRAIN_WINDOW_HEIGHT/2;
+		//hidden node positions
+		for (int i = 0; i < hidden_neurons.size(); i++) {
+			hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());
+			hidden_neurons[i]->y = ANT_BRAIN_WINDOW_HEIGHT/2;
+		}
 	}
 }
 
-neat_ant& cross_over(neat_ant mother, neat_ant father)
+void neat_ant::close_display()
+{
+	if (window_open) {
+		SDL_DestroyWindow(brain_window);
+		SDL_DestroyRenderer(brain_renderer);
+		brain_window = NULL;
+		brain_renderer = NULL;
+		window_open = false;
+	}
+}
+
+neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messes SDL up
 {
 	int daughter_mutability = (mother.mutability + father.mutability)/ 2;
 	srand(seed++);
-	daughter_mutability += rand()%8 - 4;
+	daughter_mutability += rand()%4 - 2;
+	if (daughter_mutability <= 0)
+		daughter_mutability = 1;
 
 	//pick daughter type
 	ant_type daughter_type;
@@ -277,13 +300,10 @@ neat_ant& cross_over(neat_ant mother, neat_ant father)
 			daughter_type = mother.type;
 	}
 	neat_ant *daughter = new neat_ant(daughter_type, 0, 0);
+	daughter->mutability = daughter_mutability;
 
 	//cross over neural net based on innovation numbers
 
-	struct gene {//useful for crossover
-		int owner_id, target_id, innovation_number;
-		double weight;
-	};
 	//to take disjoint and excess genes the fitter parent is needed
 	neat_ant *fitter_parent = NULL, *not_fitter_parent = NULL;
 	if (mother.get_fitness() > father.get_fitness()) {
@@ -296,6 +316,24 @@ neat_ant& cross_over(neat_ant mother, neat_ant father)
 
 	//give daughter fitter_parent's neurons
 	daughter->hidden_neurons = fitter_parent->hidden_neurons;
+
+	//remove synapses and biases
+	for (neuron *i : daughter->hidden_neurons) {
+		i->synapses.clear();
+		i->weights.clear();
+		i->innovation_numbers.clear();
+		i->computed = false;
+		i->value = 0.5;
+		i->bias = 0;
+	}
+	for (int i = 0; i < 7; i++) {
+		daughter->output_layer[i].synapses.clear();
+		daughter->output_layer[i].weights.clear();
+		daughter->output_layer[i].innovation_numbers.clear();
+		daughter->output_layer[i].value = 0.5;
+		daughter->output_layer[i].bias = 0;
+	}
+
 	//assign biases
 	for (neuron *i : daughter->hidden_neurons) {
 		int fitter_bias_index = -1,
@@ -305,20 +343,29 @@ neat_ant& cross_over(neat_ant mother, neat_ant father)
 			if (i->id == fitter_parent->hidden_neurons[j]->id)
 				fitter_bias_index = j;
 
-		for (int j = 0; j < not_fitter_parent->hidden_neurons.size() && not_fitter_bias_index == -1; j++)
+		for (int j = 0; j < not_fitter_parent->hidden_neurons.size() && not_fitter_bias_index == -1; j++) {
 			if (i->id == not_fitter_parent->hidden_neurons[j]->id)
 				not_fitter_bias_index = j;
+		}
 
 		srand(seed++);
 		if (not_fitter_bias_index != -1 && rand()%2 == 0)
 			i->bias = not_fitter_parent->hidden_neurons[not_fitter_bias_index]->bias;
 		else
-			i->bias = not_fitter_parent->hidden_neurons[not_fitter_bias_index]->bias;
+			i->bias = fitter_parent->hidden_neurons[fitter_bias_index]->bias;
 
 		srand(seed++);
 		if (rand()%daughter_mutability == 0) {//mutate bias
 			srand(seed++);
-			i->bias *= (rand()%20)/10;
+			i->bias += ((double)(rand()%10))/10.0 - 0.5;
+			srand(seed++);
+			double coefficient = ((double)(rand()%10))/10.0 + 0.5;
+			i->bias *= coefficient;
+
+			if (i->bias > 10)
+				i->bias = 10;
+			else if (i->bias < -10)
+				i->bias = -10;
 		}
 
 	}
@@ -337,7 +384,140 @@ neat_ant& cross_over(neat_ant mother, neat_ant father)
 		srand(seed++);
 		if (rand()%daughter_mutability == 0) {//mutate bias
 			srand(seed++);
-			daughter->output_layer[i].bias *= (rand()%20)/10;
+			daughter->output_layer[i].bias += ((double)(rand()%10))/10.0 - 0.5;
+			srand(seed++);
+			double coefficient = ((double)(rand()%10))/10.0 + 0.5;
+			if (coefficient == 0)
+				coefficient = 1;
+			daughter->output_layer[i].bias *= coefficient;
+
+			if (daughter->output_layer[i].bias > 10)
+				daughter->output_layer[i].bias = 10;
+			else if (daughter->output_layer[i].bias < -10)
+				daughter->output_layer[i].bias = -10;
+
+		}
+	}
+
+	//sort hidden neurons by ID
+	std::sort(daughter->hidden_neurons.begin(), daughter->hidden_neurons.end(), compare_neurons);
+	//cross over output synapses
+	for (int i = 0; i < 7; i++) {
+		//sort synapses
+		/*std::sort(fitter_parent->output_layer[i].synapses.begin(), fitter_parent->output_layer[i].synapses.end(), compare_neurons);
+		  std::sort(not_fitter_parent->output_layer[i].synapses.begin(), not_fitter_parent->output_layer[i].synapses.end(), compare_neurons);*/
+
+		for (int n = 0; n < fitter_parent->output_layer[i].synapses.size(); n++) {
+			bool common_gene = false;
+			int target_innovation_number = fitter_parent->output_layer[i].innovation_numbers[n];
+			for (int unfit_n = 0; unfit_n < not_fitter_parent->output_layer[i].synapses.size() && !common_gene; unfit_n++) {
+				if (not_fitter_parent->output_layer[i].innovation_numbers[unfit_n] == target_innovation_number) {
+					common_gene = true;
+				}
+			}
+
+			//find target neuron address
+			neuron *target_neuron = NULL;
+			int target_id = fitter_parent->output_layer[i].synapses[n]->id;
+			bool found = false;
+			for (neuron *iter : daughter->hidden_neurons) {
+				if (iter->id == target_id) {
+					target_neuron = iter;
+					break;
+				}
+			}
+
+			//get weight
+			double weighting = 1;
+			if (common_gene) {
+				srand(seed++);
+				neat_ant *gene_owner = NULL;
+				if (rand()%2 == 0)
+					gene_owner = &father;
+				else
+					gene_owner = &mother;
+
+				weighting = gene_owner->output_layer[i].weights[n];
+			} else {
+				weighting = fitter_parent->output_layer[i].weights[n];
+			}
+
+			//mutate weight
+			srand(seed++);
+			if (rand()%daughter_mutability == 0) {
+				srand(seed++);
+				weighting += ((double)(rand()%10))/10.0 - 0.5;
+				srand(seed++);
+				double coefficient = ((double)(rand()%10))/10.0 + 0.5;
+				weighting *= coefficient;
+
+				if (weighting > 10)
+					weighting = 10;
+				else if (weighting < -10)
+					weighting = -10;
+			}
+
+			daughter->output_layer[i].add_synapse(target_neuron, weighting);
+		}
+	}
+
+	//cross over hidden synapses
+	for (int i = 0; i < fitter_parent->hidden_neurons.size(); i++) {
+		//sort synapses
+		std::sort(fitter_parent->hidden_neurons[i]->synapses.begin(), fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
+		std::sort(not_fitter_parent->hidden_neurons[i]->synapses.begin(), not_fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
+
+		for (int n = 0; n < fitter_parent->hidden_neurons[i]->synapses.size(); n++) {
+			bool common_gene = false;
+			int target_innovation_number = fitter_parent->output_layer[i].innovation_numbers[n];
+			for (int unfit_n = 0; unfit_n < not_fitter_parent->output_layer[i].synapses.size() && !common_gene; unfit_n++) {
+				if (not_fitter_parent->output_layer[i].innovation_numbers[unfit_n] == target_innovation_number) {
+					common_gene = true;
+				}
+			}
+
+			//find target neuron address
+			neuron *target_neuron = NULL;
+			int target_id = fitter_parent->hidden_neurons[i]->synapses[n]->id;
+			bool found = false;
+			for (neuron *iter : daughter->hidden_neurons) {
+				if (iter->id == target_id) {
+					target_neuron = iter;
+					break;
+				}
+			}
+
+			//get weight
+			double weighting = 1;
+			if (common_gene) {
+				srand(seed++);
+				neat_ant *gene_owner = NULL;
+				if (rand()%2 == 0)
+					gene_owner = &father;
+				else
+					gene_owner = &mother;
+
+				weighting = gene_owner->output_layer[i].weights[n];
+			} else {
+				weighting = fitter_parent->output_layer[i].weights[n];
+			}
+
+			//mutate weight
+			srand(seed++);
+			if (rand()%daughter_mutability == 0) {
+				srand(seed++);
+				weighting += ((double)(rand()%10))/10.0 - 0.5;
+				srand(seed++);
+				double coefficient = ((double)(rand()%10))/10.0 + 0.5;
+				weighting *= coefficient;
+
+				if (weighting > 10)
+					weighting = 10;
+				else if (weighting < -10)
+					weighting = -10;
+			}
+
+			daughter->output_layer[i].add_synapse(target_neuron, weighting);
 		}
 	}
 

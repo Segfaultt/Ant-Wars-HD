@@ -183,7 +183,8 @@ int main()
 					arc,
 					greasy_boy,
 					weeb,
-					matt;
+					matt,
+					antdo;
 			int x,y;
 
 		public:
@@ -198,6 +199,7 @@ int main()
 				greasy_boy.load_text("GREASY BOY", {0x70, 0xd0, 0x70}, "res/default/Cousine-Regular.ttf", 30);
 				weeb.load_text("weeb", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
 				matt.load_text("Fidget spinner", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
+				antdo.load_text("antdo", {0xff, 0xff, 0x00}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -237,6 +239,10 @@ int main()
 					case MATT:
 						matt.render(x - matt.get_width()/2, y);
 						break;
+
+					case ANTDO:
+						antdo.render(x - antdo.get_width()/2, y);
+						break;
 				}
 			}
 	};
@@ -266,7 +272,12 @@ int main()
 	}
 
 	//neat set up
-	neat_ant *gladiator1 = NULL, *gladiator2 = NULL;
+	neuron_id = 20;
+	innovation_number = 0;
+	neat_ant *gladiator1 = NULL, *gladiator2 = NULL, *mother = NULL, *father = NULL;
+	father =  new neat_ant(CSS_BAD, 0, 0);
+	mother = &cross_over(*father, *father);
+	int ticks_left;
 
 	//=====main loop=====
 	bool quit = false;
@@ -300,19 +311,22 @@ int main()
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_3) {
 				ui_state = NEAT_MENU;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_1) {
+				//ticks_left = 1500;//~5s real time 25s @ 60fps
+				ticks_left = 720;//~2.5s real time 12 @ 60fps
 				ui_state = NEAT_GAME;
-				innovation_number = 0;
-				neuron_id = 0;
 
-				gladiator1 =  new neat_ant(LUCA, SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
-				gladiator2 =  new neat_ant(LUCA, 50,SCREEN_HEIGHT/2);
+				gladiator1 = &cross_over(*mother, *father);
+				gladiator2 = &cross_over(*mother, *father);
+				gladiator2->set_position(50, SCREEN_HEIGHT/2);
+				gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
 				gladiator1->set_other_ants({gladiator2});
 				gladiator2->set_other_ants({gladiator1});
 				gladiator1->flipped = true;
 				gladiator2->flipped = false;
-
-				gladiator2->display_brain();
+			} else if (ui_state == NEAT_GAME && e.key.keysym.sym == SDLK_l) {
 				gladiator1->display_brain();
+			} else if (ui_state == NEAT_GAME && e.key.keysym.sym == SDLK_r) {
+				gladiator2->display_brain();
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_0) {
 				if (right_ant_type_timer <= 0) {
 					switch (right_ant_type) {
@@ -346,6 +360,10 @@ int main()
 
 						case WEEB:
 							right_ant_type = MATT;
+							break;
+
+						case MATT:
+							right_ant_type = ANTDO;
 							break;
 
 						default:
@@ -387,6 +405,10 @@ int main()
 
 						case WEEB:
 							left_ant_type = MATT;
+							break;
+
+						case MATT:
+							left_ant_type = ANTDO;
 							break;
 
 						default:
@@ -534,6 +556,18 @@ int main()
 		} else if (ui_state == NEAT_GAME) {
 			gladiator1->tick();
 			gladiator2->tick();
+
+			if (ticks_left-- <= 0) {
+				gladiator1->close_display();
+				gladiator2->close_display();
+				ui_state = NEAT_MENU;
+				delete(mother);
+				delete(father);
+				mother = gladiator1;
+				father = gladiator2;
+				gladiator1 = NULL;
+				gladiator2 = NULL;
+			}
 		}
 
 		//frame cap

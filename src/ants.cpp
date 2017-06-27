@@ -97,6 +97,10 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/fidget_spinner.png");
 			speed *= 1.4;
 			break;
+		case ANTDO:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/antdo.png");
+			break;
+
 	};
 }
 
@@ -384,6 +388,11 @@ void ant::apply_physics()
 			grease_effect = 1;
 		}
 	}
+
+	//slowly die
+	if (type == ANTDO) {
+		damage(0.1);
+	}
 }
 
 int ant::get_x()
@@ -480,6 +489,19 @@ void ant::ability()
 			if (stamina >= 60) {
 				stamina -= 60;
 				tenticles_out = TICKS_PER_FRAME/2;
+			}
+			break;
+
+		case ANTDO:
+			if (stamina >= 70) {
+				stamina -= 70;
+
+				srand(seed++);
+				ant *switcher_ant = other_ants[0];//rand()%other_ants.size()];
+				double transfer_health = switcher_ant->get_health();
+				//go through the standard damage funtion for mass
+				switcher_ant->damage(transfer_health - health);
+				damage(health - transfer_health);
 			}
 			break;
 	}

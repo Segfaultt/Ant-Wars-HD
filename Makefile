@@ -15,3 +15,6 @@ all: $(OBJS)
 
 install: $(OBJ_NAME)
 	cp $(OBJ_NAME) $(INSTALL_DIR)
+
+debug: $(OBJS)
+	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -g -o $(OBJ_NAME)

@@ -21,6 +21,7 @@ enum ant_type {
 	GREASY_BOY,
 	WEEB,
 	MATT,
+	ANTDO,
 	NO_OF_ANT_TYPE
 };
 
@@ -41,11 +42,11 @@ class ant {
 	void damage(double damage);
 	void check_edge();
 	void flip();
-	void set_position(int new_x, int new_y);
 
 	//setters
 	void set_grease_effect(bool on);
 	void change_speed(double value);
+	void set_position(int new_x, int new_y);
 
 	//getters
 	int get_x();
