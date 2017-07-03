@@ -184,7 +184,8 @@ int main()
 					greasy_boy,
 					weeb,
 					matt,
-					antdo;
+					antdo,
+					queen;
 			int x,y;
 
 		public:
@@ -200,6 +201,7 @@ int main()
 				weeb.load_text("weeb", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
 				matt.load_text("Fidget spinner", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
 				antdo.load_text("antdo", {0xff, 0xff, 0x00}, "res/default/Cousine-Regular.ttf", 30);
+				queen.load_text("The ant queen", {0xa0, 0x1f, 0xb0}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -242,6 +244,10 @@ int main()
 
 					case ANTDO:
 						antdo.render(x - antdo.get_width()/2, y);
+						break;
+					
+					case QUEEN:
+						queen.render(x - queen.get_width()/2, y);
 						break;
 				}
 			}
@@ -365,6 +371,10 @@ int main()
 						case MATT:
 							right_ant_type = ANTDO;
 							break;
+						
+						case ANTDO:
+							right_ant_type = QUEEN;
+							break;
 
 						default:
 							right_ant_type = YA_BOY;
@@ -409,6 +419,10 @@ int main()
 
 						case MATT:
 							left_ant_type = ANTDO;
+							break;
+
+						case ANTDO:
+							left_ant_type = QUEEN;
 							break;
 
 						default:

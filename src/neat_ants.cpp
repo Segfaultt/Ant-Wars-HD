@@ -86,24 +86,10 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 		input_neurons[i].y = ANT_BRAIN_WINDOW_HEIGHT - NEURON_RADIUS - 5;
 	}
 
-	hidden_neurons.push_back(new neuron);
-	hidden_neurons[0]->id = 20;
-	output_layer[3].bias = 1;
-	output_layer[3].add_synapse(hidden_neurons[0], -2);
-	output_layer[4].bias = -1;
-	output_layer[4].add_synapse(hidden_neurons[0], 2);
-	hidden_neurons[0]->bias = -0.5;
-	hidden_neurons[0]->add_synapse(&input_neurons[0], 1);
-
-	hidden_neurons.push_back(new neuron);
-	hidden_neurons[1]->id = 21;
-	hidden_neurons.push_back(new neuron);
-	hidden_neurons[2]->id = 22;
-	hidden_neurons[2]->add_synapse(hidden_neurons[0], 1);
-	hidden_neurons[2]->bias = 2.5;
-	output_layer[5].add_synapse(hidden_neurons[1], 1);
-	output_layer[5].add_synapse(hidden_neurons[2], 1);
-	output_layer[5].add_synapse(hidden_neurons[0], 1);
+	//hidden_neurons.push_back(new neuron);
+	//output_layer[0].add_synapse(hidden_neurons[0], 2);
+	output_layer[0].add_synapse(&input_neurons[0], 2.1);
+	//hidden_neurons[0]->add_synapse(&input_neurons[0], -2);
 
 	for (int i = 0; i < hidden_neurons.size(); i++) {
 		hidden_neurons[i]->x = i * ANT_BRAIN_WINDOW_WIDTH/hidden_neurons.size() + ANT_BRAIN_WINDOW_WIDTH/(2*hidden_neurons.size());
@@ -419,11 +405,19 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			//find target neuron address
 			neuron *target_neuron = NULL;
 			int target_id = fitter_parent->output_layer[i].synapses[n]->id;
-			bool found = false;
-			for (neuron *iter : daughter->hidden_neurons) {
-				if (iter->id == target_id) {
-					target_neuron = iter;
-					break;
+			if (target_id > 19) {
+				for (neuron *iter : daughter->hidden_neurons) {
+					if (iter->id == target_id) {
+						target_neuron = iter;
+						break;
+					}
+				}
+			} else {
+				for (int index = 0; index < 13; index++) {
+					if (daughter->input_neurons[index].id ==  target_id) {
+						target_neuron = &daughter->input_neurons[index];
+						break;
+					}
 				}
 			}
 
@@ -435,7 +429,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 				if (rand()%2 == 0)
 					gene_owner = &father;
 				else
-					gene_owner = &mother;
+				gene_owner = &mother;
 
 				weighting = gene_owner->output_layer[i].weights[n];
 			} else {
@@ -462,16 +456,17 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	}
 
 	//cross over hidden synapses
-	for (int i = 0; i < fitter_parent->hidden_neurons.size(); i++) {
+	/*for (int i = 0; i < fitter_parent->hidden_neurons.size(); i++) {
 		//sort synapses
-		std::sort(fitter_parent->hidden_neurons[i]->synapses.begin(), fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
-		std::sort(not_fitter_parent->hidden_neurons[i]->synapses.begin(), not_fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
+		//std::sort(fitter_parent->hidden_neurons[i]->synapses.begin(), fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
+		//std::sort(not_fitter_parent->hidden_neurons[i]->synapses.begin(), not_fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
 
+		std::cout <<fitter_parent->hidden_neurons[i]->synapses.size() << std::endl;
 		for (int n = 0; n < fitter_parent->hidden_neurons[i]->synapses.size(); n++) {
 			bool common_gene = false;
-			int target_innovation_number = fitter_parent->output_layer[i].innovation_numbers[n];
-			for (int unfit_n = 0; unfit_n < not_fitter_parent->output_layer[i].synapses.size() && !common_gene; unfit_n++) {
-				if (not_fitter_parent->output_layer[i].innovation_numbers[unfit_n] == target_innovation_number) {
+			int target_innovation_number = fitter_parent->hidden_neurons[i]->innovation_numbers[n];
+			for (int unfit_n = 0; unfit_n < not_fitter_parent->hidden_neurons[i]->synapses.size() && !common_gene; unfit_n++) {
+				if (not_fitter_parent->hidden_neurons[i]->innovation_numbers[unfit_n] == target_innovation_number) {
 					common_gene = true;
 				}
 			}
@@ -479,11 +474,18 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			//find target neuron address
 			neuron *target_neuron = NULL;
 			int target_id = fitter_parent->hidden_neurons[i]->synapses[n]->id;
-			bool found = false;
-			for (neuron *iter : daughter->hidden_neurons) {
-				if (iter->id == target_id) {
-					target_neuron = iter;
-					break;
+			if (target_id > 19) {
+				for (neuron *iter : daughter->hidden_neurons) {
+					if (iter->id == target_id) {
+						target_neuron = iter;
+						break;
+					}
+				}
+			} else {
+				for (int index = 0; index < 13 && target_neuron == NULL; index++) {
+					if (daughter->input_neurons[index].id ==  target_id) {
+						target_neuron = &daughter->input_neurons[index];
+					}
 				}
 			}
 
@@ -497,9 +499,9 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 				else
 					gene_owner = &mother;
 
-				weighting = gene_owner->output_layer[i].weights[n];
+				weighting = gene_owner->hidden_neurons[i]->weights[n];
 			} else {
-				weighting = fitter_parent->output_layer[i].weights[n];
+				weighting = fitter_parent->hidden_neurons[i]->weights[n];
 			}
 
 			//mutate weight
@@ -517,9 +519,9 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 					weighting = -10;
 			}
 
-			daughter->output_layer[i].add_synapse(target_neuron, weighting);
+			daughter->hidden_neurons[i]->add_synapse(target_neuron, weighting);
 		}
-	}
+	}*/
 
 	return *daughter;
 }

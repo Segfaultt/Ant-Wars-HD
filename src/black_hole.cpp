@@ -21,7 +21,7 @@ void black_hole::render()
 
 void black_hole::pull_ants(int target_x, int target_y, double target_mass, double &x_component, double &y_component, double &rotation)
 {
-	const int G = 150;
+	const int G = 200 + angle/30;
 	double distance_sqrd;
 	distance_sqrd = pow(x - target_x, 2) + pow(y - target_y, 2);
 	x_component = (G * target_mass * (x - target_x))/distance_sqrd;
@@ -29,7 +29,7 @@ void black_hole::pull_ants(int target_x, int target_y, double target_mass, doubl
 	
 	rotation = 0;
 	if (distance_sqrd < 100) {
-		rotation = 1000/distance_sqrd;
+		rotation = 600/distance_sqrd;
 	}
 
 	x += velocity[0];
@@ -45,5 +45,5 @@ void black_hole::pull_ants(int target_x, int target_y, double target_mass, doubl
 
 bool black_hole::is_alive()
 {
-	return angle < 4500;
+	return angle < 6500;
 }

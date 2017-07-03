@@ -1,11 +1,3 @@
-enum ai_state {
-	AGGRESSIVE,
-	FLEE,
-	EVADE,
-	MALFUNCTION,
-	OFF_SCREEN
-};
-
 class bot {
 	public:
 		bot(int x, int y, ant* new_target);

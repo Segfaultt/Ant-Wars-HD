@@ -22,13 +22,24 @@ enum ant_type {
 	WEEB,
 	MATT,
 	ANTDO,
+	QUEEN,
 	NO_OF_ANT_TYPE
+};
+
+enum ai_state {
+	AGGRESSIVE,
+	FLEE,
+	EVADE,
+	MALFUNCTION,
+	OFF_SCREEN
 };
 
 class ant {
 	public:
 	ant(ant_type type_, int starting_x, int starting_y);
 	void set_other_ants(std::vector<ant *> other_ants_);
+	void add_other_ants(ant *other_ants_);
+	void remove_other_ants(ant *other_ants_);
 
 	//actions
 	void nip();
@@ -39,6 +50,7 @@ class ant {
 	void apply_rotational_force(double angular_force);
 	void apply_physics();
 	void render();
+	void ai(ant *target);
 	void damage(double damage);
 	void check_edge();
 	void flip();
@@ -72,6 +84,7 @@ class ant {
 	       grease_effect;
 	std::vector<black_hole *> holes;
 	std::vector<grease_trap *> grease;
+	std::vector<ant *> child;
 	std::vector<ant *> other_ants;
 	electric_bolt *tesla_bolt;
 	ant *tesla_target;
@@ -84,6 +97,9 @@ class ant {
 	texture_wrapper guitar_texture;
 	texture_wrapper tenticle_texture;
 	int nip_out_timer, laser_on, guitar, tenticles_out, flip_timer, arc_turn;
+	ai_state state, past_state;
+	int inteligence,
+	    right_bias;
 };
 
 #include "ants.cpp"

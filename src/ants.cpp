@@ -33,6 +33,14 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
 	tesla_bolt = NULL;
 	tesla_target = NULL;
+	//ai stuff
+	state = AGGRESSIVE;
+	srand(seed++);
+	inteligence = rand()%15 + 1;
+	srand(seed++);
+	right_bias = rand()%24-12;
+	srand(seed++);
+
 
 	bar_health = new bar(90, 10);
 	bar_stamina = new bar(60, 7);
@@ -59,6 +67,7 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
 			speed *= 1.2;
+			mass *= 0.6;
 			break;
 		case BOT:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
@@ -101,6 +110,10 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/antdo.png");
 			break;
 
+		case QUEEN:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/queen.png");
+			nip_damage *= 0.6;
+			break;
 	};
 }
 
@@ -134,8 +147,8 @@ void ant::move(direction dir)
 
 
 		case LEFT:
-			if (type == MATT && angular_momentum < 30) {
-				angular_momentum += 1;
+			if (type == MATT && angular_momentum < 10) {
+				angular_momentum += 1.5;
 			} else {
 				bearing -= turn_speed;
 				if (bearing < 0)
@@ -147,8 +160,8 @@ void ant::move(direction dir)
 			break;
 
 		case RIGHT:
-			if (type == MATT && angular_momentum > -30) {
-				angular_momentum -= 1;
+			if (type == MATT && angular_momentum > -10) {
+				angular_momentum -= 1.5;
 			} else {
 				bearing += turn_speed;
 				if (bearing >= 360)
@@ -280,7 +293,7 @@ void ant::render()
 	sprite.render(x, y, bearing);
 
 	if (type == HIPSTER) {
-		if (guitar > 0 && stamina > 0 && health < 100) {
+		if (guitar > 0 && stamina > 0 && health <= 100) {
 			guitar--;
 			guitar_texture.render(45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25, bearing);
 			damage(-1);
@@ -305,6 +318,34 @@ void ant::render()
 		move(FORWARDS);
 		arc_turn--;
 	}
+
+	if (type == QUEEN) {
+			int index = 0;
+		for (ant *i : child) {
+			ant *target = NULL;
+			double smallest_distance = 12345;
+			for (ant *ants : other_ants)
+				if (smallest_distance > PYTHAG(ants->get_x() - x, ants->get_y() - y)) {
+					smallest_distance = PYTHAG(ants->get_x() - x, ants->get_y() - y);
+					target = ants;
+				}
+
+
+			if (smallest_distance != 12345) {
+				i->ai(target);
+				i->render();
+				i->apply_physics();
+			}
+
+			if (!i->is_alive()) {
+					for (ant *j : other_ants) {
+							j->remove_other_ants(i);
+					}
+					child.erase(child.begin() + index);
+			}
+			index++;
+		}
+	}
 }
 
 void ant::apply_force(double x_component, double y_component)
@@ -315,9 +356,31 @@ void ant::apply_force(double x_component, double y_component)
 
 void ant::apply_physics()
 {
+	//cap velocity
+	/*const double velocity_cap = 50;
+	if (velocity[0] > velocity_cap)
+		velocity[0] = velocity_cap;
+	if (velocity[0] < -velocity_cap)
+		velocity[0] = -velocity_cap;
+	if (velocity[1] > velocity_cap)
+		velocity[1] = velocity_cap;
+	if (velocity[1] < -velocity_cap)
+		velocity[1] = -velocity_cap;*/
+
 	//apply velocity
 	x += velocity[0];
 	y += velocity[1];
+
+	//wrap position
+	const int out_of_bounds_border = 300;
+	if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
+		x = -out_of_bounds_border - 50;
+	if (x + 50 < -out_of_bounds_border)
+		x = SCREEN_WIDTH + out_of_bounds_border - 50;
+	if (y + 50 < -out_of_bounds_border)
+		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
+	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
+		y = -out_of_bounds_border - 50;
 
 	//apply angular momentum
 	bearing -= angular_momentum;
@@ -445,10 +508,10 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-			if (stamina > 60) {
+			if (stamina > 55) {
 				black_hole *hole = new black_hole(x, y, angle);
 				holes.push_back(hole);
-				stamina -= 60;
+				stamina -= 55;
 			}
 			break;
 
@@ -497,13 +560,25 @@ void ant::ability()
 				stamina -= 70;
 
 				srand(seed++);
-				ant *switcher_ant = other_ants[0];//rand()%other_ants.size()];
+				ant *switcher_ant = other_ants[0];
 				double transfer_health = switcher_ant->get_health();
 				//go through the standard damage funtion for mass
 				switcher_ant->damage(transfer_health - health);
 				damage(health - transfer_health);
 			}
 			break;
+		case QUEEN:
+			if (stamina >= 53& health > 20 && child.size() < 3) {
+				damage(20);
+				stamina -= 53;
+
+				srand(seed++);
+				child.push_back(new ant(BOT, 45 * cos(angle * PI_OVER_180) + x + 25, -45 * sin(angle * PI_OVER_180) + y + 25));
+				child[child.size() - 1]->set_other_ants(other_ants);
+				for (ant *i : other_ants) {
+					i->add_other_ants(child[child.size() - 1]);
+				}
+			}
 	}
 }
 
@@ -516,7 +591,7 @@ void ant::nip()
 		double distance = 0;
 		nip_out_timer = TICKS_PER_FRAME/2;//0.5 seconds
 		for (ant *i : other_ants) {
-			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2)+pow(nip_pos[1] - i->get_y() - 25, 2));
+			distance = sqrt(pow(nip_pos[0] - i->get_x() - 25, 2) + pow(nip_pos[1] - i->get_y() - 25, 2));
 			if (distance < 50) {
 				i->damage(nip_damage * grease_effect);
 
@@ -616,4 +691,122 @@ void ant::set_position(int new_x, int new_y)
 {
 	x = new_x;
 	y = new_y;
+}
+
+void ant::add_other_ants(ant *other_ants_)
+{
+	other_ants.push_back(other_ants_);
+}
+
+void ant::remove_other_ants(ant *other_ants_)
+{
+	for (int i = 0; i < other_ants.size(); i++) {
+		if (other_ants[i] == other_ants_)
+			other_ants.erase(other_ants.begin() + i);
+	}
+}
+
+void ant::ai(ant *target)
+{
+	//maths
+	double x_component = target->get_x() - get_x();
+	double y_component = -1 * (target->get_y() - get_y());
+	double angle_to_target = atan(y_component/x_component) * ONE_EIGHTY_OVER_PI;
+	if (x_component < 0)
+		angle_to_target += 180;
+	if (x_component > 0 && y_component < 0)
+		angle_to_target += 360;
+	double angle_difference = get_angle() - angle_to_target;
+	if (angle_difference > 180)
+		angle_difference = angle_difference - 360;
+	double distance = sqrt(pow(x_component, 2) + pow(y_component, 2));
+	double stamina_ratio = get_stamina() * 100 / target->get_stamina();
+
+	//apply behaviour
+	switch (state) {
+		case AGGRESSIVE:
+			//turning
+			if (angle_difference < -15 + right_bias)
+				move(LEFT);
+			if (angle_difference > 15 + right_bias)
+				move(RIGHT);
+
+			//move forwards
+			if (abs(angle_difference) < 30 && distance > 60)
+				move(FORWARDS);
+
+			srand(seed++);
+			if (abs(angle_difference) < 80 && distance < 70 && rand()%9 == 0)
+				nip();
+			break;
+		case MALFUNCTION:
+			{
+				srand(seed++);
+				int turn = rand()%3;
+				if (turn == 0)
+					move(LEFT);
+				if (turn == 1)
+					move(RIGHT);
+				srand(seed++);
+				if (rand()%3 != 1)
+					move(FORWARDS);
+				srand(seed++);
+				if (rand()%20 == 0)
+					nip();
+				srand(seed++);
+				if (rand()%15 == 0)
+					state = past_state;
+				break;
+			}
+		case FLEE:
+			if (distance < 500) {
+				if (angle_difference > -5)
+					move(LEFT);
+				if (angle_difference < 5)
+					move(RIGHT);
+				move(FORWARDS);
+			}
+			break;
+		case OFF_SCREEN:
+			{
+				//maths
+				double x_component = SCREEN_WIDTH/2 - get_x();
+				double y_component = -1 * (SCREEN_HEIGHT/2 - get_y());
+				double angle_to_target = atan(y_component/x_component) * ONE_EIGHTY_OVER_PI;
+				if (x_component < 0)
+					angle_to_target += 180;
+				if (x_component > 0 && y_component < 0)
+					angle_to_target += 360;
+				double angle_difference = get_angle() - angle_to_target;
+				if (angle_difference > 180)
+					angle_difference = angle_difference - 360;
+
+				//turning
+				if (angle_difference < -5)
+					move(LEFT);
+				if (angle_difference > 5)
+					move(RIGHT);
+
+				//move forwards
+				if (abs(angle_difference) < 30)
+					move(FORWARDS);
+
+				if (abs(get_x() - SCREEN_WIDTH/2) < SCREEN_WIDTH/2 - 100 && abs(get_y() - SCREEN_HEIGHT/2) < SCREEN_HEIGHT/2 - 100)
+					state = past_state;
+			}
+
+	}
+
+	//behaviour checks
+	srand(seed++);
+	if (get_x() - 50 < 0 | get_x() + 50 > SCREEN_WIDTH | get_y() - 50 < 0 | get_y() + 50 > SCREEN_HEIGHT) {
+		past_state = state;
+		state = OFF_SCREEN;
+	} else if (rand()%inteligence == 0) {
+		past_state = state;
+		state = MALFUNCTION;
+	} else if (stamina_ratio < 20)
+		state = FLEE;
+	else
+		state = AGGRESSIVE;
 }
