@@ -12,6 +12,7 @@ struct neuron {
 	void add_synapse(neuron *other_neuron, double weight);
 	void set_id();
 	bool operator<(const neuron& other);
+	bool leads_to(neuron *other);
 
 	double bias;
 	double value;

@@ -69,6 +69,19 @@ void neuron::display_synapses(SDL_Renderer* &brain_renderer)
 	}
 }
 
+bool neuron::leads_to(neuron *other)
+{
+	bool leads_to = false;
+
+	for (neuron *i : synapses)
+		if (i == other | i->leads_to(other)) {
+			leads_to = true;
+			break;
+		}
+
+	return leads_to;
+}
+
 //=====Ants=====
 neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, starting_x, starting_y)
 {
@@ -565,12 +578,13 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	if (rand()%(4 * daughter_mutability) == 0) {
 		int origin_index,
 		    end_index;
+		neuron *origin = NULL,
+		       *end = NULL;
+		bool is_valid_synapse;
 		srand(seed++);
 		origin_index = rand()%(7 + daughter->hidden_neurons.size());
 		end_index = rand()%(13 + daughter->hidden_neurons.size());
 
-		neuron *origin = NULL,
-		       *end = NULL;
 		if (origin_index < 7)
 			origin = &daughter->output_layer[origin_index];
 		else
@@ -580,7 +594,17 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		else
 			end = daughter->hidden_neurons[end_index - 13];
 
-		origin->add_synapse(end, 0);
+		//stop infinite recusion and duplicate synapses
+		is_valid_synapse = true;
+		for (neuron *i : end->synapses)
+			if (i->leads_to(origin))
+				is_valid_synapse = false;
+		for (neuron *i : origin->synapses)
+			if (i == end)
+				is_valid_synapse = false;
+
+		if (is_valid_synapse)
+			origin->add_synapse(end, 0);
 	}
 
 	//mutate new neurons inside of synapses
