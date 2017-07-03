@@ -4,6 +4,7 @@ struct neuron {
 	std::vector<neuron *> synapses;
 	std::vector<double> weights;
 	std::vector<int> innovation_numbers;
+	std::vector<bool> enabled;
 
 	neuron();
 	double get_value();

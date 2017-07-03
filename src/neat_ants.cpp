@@ -35,6 +35,7 @@ void neuron::add_synapse(neuron *other_neuron, double weight)//add an entirely n
 	synapses.push_back(other_neuron);
 	weights.push_back(weight);
 	innovation_numbers.push_back(innovation_number++);
+	enabled.push_back(true);
 }
 
 bool neuron::operator<(const neuron& other)
@@ -261,14 +262,15 @@ void neat_ant::close_display()
 
 void neat_ant::set_as_starter()
 {
-	hidden_neurons.push_back(new neuron);
+	mutability = 10;
+	/*hidden_neurons.push_back(new neuron);
 	hidden_neurons[0]->set_id();
 	hidden_neurons.push_back(new neuron);
 	hidden_neurons[1]->set_id();
 	output_layer[0].add_synapse(hidden_neurons[0], 2);
 	output_layer[0].add_synapse(&input_neurons[0], 2.1);
 	hidden_neurons[0]->add_synapse(hidden_neurons[1], 5);
-	hidden_neurons[1]->add_synapse(&input_neurons[1], 5);
+	hidden_neurons[1]->add_synapse(&input_neurons[1], 5);*/
 }
 
 neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messes SDL up
@@ -282,7 +284,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		//pick daughter type
 		ant_type daughter_type;
 		srand(seed++);
-		if (rand()%(4 * daughter_mutability) == 0) {//check for mutation major mutations are 4 times less likely
+		if (rand()%(8 * daughter_mutability) == 0) {
 				srand(seed++);
 				daughter_type = ant_type(rand()%NO_OF_ANT_TYPE);
 		} else {
@@ -351,9 +353,9 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 				srand(seed++);
 				if (rand()%daughter_mutability == 0) {//mutate bias
 						srand(seed++);
-						i->bias += ((double)(rand()%10))/10.0 - 0.5;
+						i->bias += ((double)(rand()%6))/10.0 - 0.3;
 						srand(seed++);
-						double coefficient = ((double)(rand()%10))/10.0 + 0.5;
+						double coefficient = ((double)(rand()%5))/10.0 + 0.8;
 						i->bias *= coefficient;
 
 						if (i->bias > 10)
@@ -421,6 +423,21 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 								target_neuron = &daughter->input_neurons[target_id - 7];
 						}
 
+						//is it disabled
+						bool is_enabled;
+						if (common_gene) {
+								if (fitter_parent->output_layer[i].enabled[n] + not_fitter_parent->output_layer[i].enabled[n] == 2)
+										is_enabled = true;
+								else
+										is_enabled = (rand()%4 != 0);
+						} else {
+								if (fitter_parent->output_layer[i].enabled[n])
+										is_enabled = true;
+								else
+										is_enabled = (rand()%4 != 0);
+
+						}
+
 						//get weight
 						double weighting = 1;
 						if (common_gene) {
@@ -451,7 +468,10 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 										weighting = -10;
 						}
 
-						daughter->output_layer[i].add_synapse(target_neuron, weighting);
+						daughter->output_layer[i].synapses.push_back(target_neuron);
+						daughter->output_layer[i].weights.push_back(weighting);
+						daughter->output_layer[i].innovation_numbers.push_back(target_innovation_number);
+						daughter->output_layer[i].enabled.push_back(is_enabled);
 				}
 		}
 
@@ -499,6 +519,21 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 								weighting = fitter_parent->hidden_neurons[i]->weights[n];
 						}
 
+						//is it disabled
+						bool is_enabled;
+						if (common_gene) {
+								if (fitter_parent->hidden_neurons[i]->enabled[n] + not_fitter_parent->hidden_neurons[i]->enabled[n] == 2)
+										is_enabled = true;
+								else
+										is_enabled = (rand()%4 != 0);
+						} else {
+								if (fitter_parent->hidden_neurons[i]->enabled[n])
+										is_enabled = true;
+								else
+										is_enabled = (rand()%4 != 0);
+
+						}
+
 						//mutate weight
 						srand(seed++);
 						if (rand()%daughter_mutability == 0) {
@@ -517,7 +552,31 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 						daughter->hidden_neurons[i]->synapses.push_back(target_neuron);
 						daughter->hidden_neurons[i]->weights.push_back(weighting);
 						daughter->hidden_neurons[i]->innovation_numbers.push_back(target_innovation_number);
+						daughter->hidden_neurons[i]->enabled.push_back(is_enabled);
 				}
+		}
+
+		//mutate new synapses
+		srand(seed++);
+		if (rand()%(4 * daughter_mutability) == 0) {
+				int origin_index,
+					end_index;
+				srand(seed++);
+				origin_index = rand()%(7 + daughter->hidden_neurons.size());
+				end_index = rand()%(13 + daughter->hidden_neurons.size());
+
+				neuron *origin = NULL,
+					   *end = NULL;
+				if (origin_index < 7)
+						origin = &daughter->output_layer[origin_index];
+				else
+						origin = daughter->hidden_neurons[origin_index - 7];
+				if (end_index < 13)
+						end = &daughter->input_neurons[end_index];
+				else
+						end = daughter->hidden_neurons[end_index - 13];
+
+				origin->add_synapse(end, 0);
 		}
 
 		return *daughter;
