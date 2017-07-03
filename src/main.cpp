@@ -284,6 +284,8 @@ int main()
 	father = new neat_ant(LUCA, 0, 0);
 	father->set_as_starter();
 	mother = &cross_over(*father, *father);
+	int generation;
+	texture_wrapper generation_counter;
 	int ticks_left;
 
 	//=====main loop=====
@@ -317,14 +319,17 @@ int main()
 				right_ant->set_other_ants({left_ant});
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_3) {
 				ui_state = NEAT_MENU;
+				generation = 0;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_1) {
+				generation++;
+				generation_counter.load_text("Generation: " + std::to_string(generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 				//ticks_left = 1500;//~5s real time 25s @ 60fps
-				ticks_left = 720;//~2.5s real time 12 @ 60fps
+				ticks_left = 720;//~2.5s real time 12s @ 60fps
 				ui_state = NEAT_GAME;
 
 				gladiator1 = &cross_over(*mother, *father);
 				gladiator2 = &cross_over(*mother, *father);
-				gladiator2->set_position(50, SCREEN_HEIGHT/2);
+				gladiator1->set_position(50, SCREEN_HEIGHT/2);
 				gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
 				gladiator1->set_other_ants({gladiator2});
 				gladiator2->set_other_ants({gladiator1});
@@ -572,6 +577,7 @@ int main()
 		} else if (ui_state == NEAT_GAME) {
 			gladiator1->tick();
 			gladiator2->tick();
+			generation_counter.render((SCREEN_WIDTH - generation_counter.get_width())/2, 50);
 
 			if (ticks_left-- <= 0 || !(gladiator1->is_alive() && gladiator2->is_alive())) {
 				gladiator1->close_display();
@@ -627,5 +633,6 @@ int main()
 
 	single_player_scores.close();
 	close();
+
 	return 0;
 }

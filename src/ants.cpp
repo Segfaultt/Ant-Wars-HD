@@ -692,6 +692,14 @@ void ant::set_position(int new_x, int new_y)
 {
 	x = new_x;
 	y = new_y;
+	
+	if (x > SCREEN_WIDTH/2) {
+		bearing = 270;
+		angle = 180;
+	} else {
+		bearing = 90;
+		angle = 0;
+	}
 }
 
 void ant::add_other_ants(ant *other_ants_)
