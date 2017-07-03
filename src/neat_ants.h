@@ -9,6 +9,7 @@ struct neuron {
 	double get_value();
 	void compute_value();
 	void add_synapse(neuron *other_neuron, double weight);
+	void set_id();
 	bool operator<(const neuron& other);
 
 	double bias;
@@ -31,6 +32,7 @@ class neat_ant : public ant {
 		void display_brain();
 		void close_display();
 		bool flipped;
+		void set_as_starter();
 		friend neat_ant& cross_over(neat_ant &mother, neat_ant &father);
 
 	private:

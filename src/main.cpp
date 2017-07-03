@@ -281,8 +281,10 @@ int main()
 	neuron_id = 20;
 	innovation_number = 0;
 	neat_ant *gladiator1 = NULL, *gladiator2 = NULL, *mother = NULL, *father = NULL;
-	father =  new neat_ant(CSS_BAD, 0, 0);
-	mother = &cross_over(*father, *father);
+	father = new neat_ant(LUCA, 0, 0);
+	father->set_as_starter();
+	mother = new neat_ant(QUEEN, 0, 0);
+	father->add_result(100,1);
 	int ticks_left;
 
 	//=====main loop=====
@@ -571,7 +573,7 @@ int main()
 			gladiator1->tick();
 			gladiator2->tick();
 
-			if (ticks_left-- <= 0) {
+			if (ticks_left-- <= 0 || !(gladiator1->is_alive() && gladiator2->is_alive())) {
 				gladiator1->close_display();
 				gladiator2->close_display();
 				ui_state = NEAT_MENU;

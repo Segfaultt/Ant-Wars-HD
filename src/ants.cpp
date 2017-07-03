@@ -337,6 +337,7 @@ void ant::render()
 				i->apply_physics();
 			}
 
+			//kill dead children
 			if (!i->is_alive()) {
 					for (ant *j : other_ants) {
 							j->remove_other_ants(i);
