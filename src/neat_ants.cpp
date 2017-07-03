@@ -62,7 +62,7 @@ void neuron::display_synapses(SDL_Renderer* &brain_renderer)
 		if (lum < 0)
 			lum = 0;
 
-		thickLineRGBA(brain_renderer, x, y, synapses[i]->x, synapses[i]->y, round(abs(weights[i])), lum, lum, lum, 0xff);
+		thickLineRGBA(brain_renderer, x, y, synapses[i]->x, synapses[i]->y, round(abs(weights[i])) + 1, lum, lum, lum, 0xff);
 
 		//tree recursion
 		synapses[i]->display_synapses(brain_renderer);
