@@ -320,7 +320,7 @@ void ant::render()
 	}
 
 	if (type == QUEEN) {
-			int index = 0;
+		int index = 0;
 		for (ant *i : child) {
 			ant *target = NULL;
 			double smallest_distance = 12345;
@@ -339,10 +339,10 @@ void ant::render()
 
 			//kill dead children
 			if (!i->is_alive()) {
-					for (ant *j : other_ants) {
-							j->remove_other_ants(i);
-					}
-					child.erase(child.begin() + index);
+				for (ant *j : other_ants) {
+					j->remove_other_ants(i);
+				}
+				child.erase(child.begin() + index);
 			}
 			index++;
 		}
@@ -359,14 +359,14 @@ void ant::apply_physics()
 {
 	//cap velocity
 	/*const double velocity_cap = 50;
-	if (velocity[0] > velocity_cap)
-		velocity[0] = velocity_cap;
-	if (velocity[0] < -velocity_cap)
-		velocity[0] = -velocity_cap;
-	if (velocity[1] > velocity_cap)
-		velocity[1] = velocity_cap;
-	if (velocity[1] < -velocity_cap)
-		velocity[1] = -velocity_cap;*/
+	  if (velocity[0] > velocity_cap)
+	  velocity[0] = velocity_cap;
+	  if (velocity[0] < -velocity_cap)
+	  velocity[0] = -velocity_cap;
+	  if (velocity[1] > velocity_cap)
+	  velocity[1] = velocity_cap;
+	  if (velocity[1] < -velocity_cap)
+	  velocity[1] = -velocity_cap;*/
 
 	//apply velocity
 	x += velocity[0];

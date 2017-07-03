@@ -9,8 +9,8 @@ class bot {
 		ai_state state,
 			 past_state;
 		int speed_talent,
-		       inteligence,
-		       right_bias;
+		    inteligence,
+		    right_bias;
 };
 
 #include "bot.cpp"

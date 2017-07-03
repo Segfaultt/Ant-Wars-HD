@@ -148,7 +148,7 @@ int main()
 	};
 
 	//=====Menu preparation=====
-                //clear renderer
+	//clear renderer
 	//load background
 	ui ui_state = MENU;
 	background_texture background;
@@ -245,7 +245,7 @@ int main()
 					case ANTDO:
 						antdo.render(x - antdo.get_width()/2, y);
 						break;
-					
+
 					case QUEEN:
 						queen.render(x - queen.get_width()/2, y);
 						break;
@@ -283,8 +283,7 @@ int main()
 	neat_ant *gladiator1 = NULL, *gladiator2 = NULL, *mother = NULL, *father = NULL;
 	father = new neat_ant(LUCA, 0, 0);
 	father->set_as_starter();
-	mother = new neat_ant(QUEEN, 0, 0);
-	father->add_result(100,1);
+	mother = &cross_over(*father, *father);
 	int ticks_left;
 
 	//=====main loop=====
@@ -373,7 +372,7 @@ int main()
 						case MATT:
 							right_ant_type = ANTDO;
 							break;
-						
+
 						case ANTDO:
 							right_ant_type = QUEEN;
 							break;
@@ -535,7 +534,7 @@ int main()
 			option3.render((SCREEN_WIDTH - option3.get_width())/2, SCREEN_HEIGHT/2 + option1.get_height() + option2.get_height());
 			right_ant_chooser.render(right_ant_type);
 			left_ant_chooser.render(left_ant_type);
-			
+
 			if (left_ant != NULL) {
 				delete left_ant;
 				left_ant = NULL;

@@ -1,11 +1,11 @@
 class timer 
 {
 	public:
-	timer();
-	void start();
-	Uint32 get_time();
- 	private:
-	Uint32 starting_ticks;
+		timer();
+		void start();
+		Uint32 get_time();
+	private:
+		Uint32 starting_ticks;
 };
 
 timer::timer()
