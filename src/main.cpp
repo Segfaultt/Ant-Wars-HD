@@ -535,6 +535,16 @@ int main()
 			option3.render((SCREEN_WIDTH - option3.get_width())/2, SCREEN_HEIGHT/2 + option1.get_height() + option2.get_height());
 			right_ant_chooser.render(right_ant_type);
 			left_ant_chooser.render(left_ant_type);
+			
+			if (left_ant != NULL) {
+				delete left_ant;
+				left_ant = NULL;
+			}
+			if (right_ant != NULL) {
+				delete right_ant;
+				right_ant = NULL;
+			}
+			bots.clear();
 		} else if (ui_state == ONE_PLAYER_GAME) {//render game with one ant
 			right_ant->apply_physics();
 			right_ant->render();
@@ -560,15 +570,6 @@ int main()
 					left_ant_win.render(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/4);
 				}
 			}
-			if (left_ant != NULL) {
-				delete left_ant;
-				left_ant = NULL;
-			}
-			if (right_ant != NULL) {
-				delete right_ant;
-				right_ant = NULL;
-			}
-			bots.clear();
 		} else if (ui_state == NEAT_GAME) {
 			gladiator1->tick();
 			gladiator2->tick();
@@ -623,6 +624,7 @@ int main()
 		delete gladiator2;
 		gladiator2 = NULL;
 	}
+	bots.clear();
 
 	single_player_scores.close();
 	close();
