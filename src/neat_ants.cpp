@@ -235,11 +235,13 @@ void neat_ant::tick()
 
 		SDL_RenderPresent(brain_renderer);
 	}
+
+	name.render(x, y - 10);
 }
 
 double neat_ant::get_fitness()
 {
-	return damage_given/damage_taken;
+	return pow(damage_given/damage_taken, 2);
 }
 
 int neat_ant::get_fights() 
@@ -252,6 +254,7 @@ void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_m
 	damage_given += damage_given_in_match;
 	damage_taken += damage_taken_in_match;
 	fights++;
+	name.load_text("H" + std::to_string(hidden_neurons.size()) + " S" + std::to_string(no_of_synapses) + " F" + std::to_string(fights), {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 }
 
 void neat_ant::display_brain()
@@ -615,41 +618,41 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	}
 
 	//mutate new neurons inside of synapses
+	struct gene {
+		neuron *origin = NULL;
+		neuron *end = NULL;
+		int innovation_number;
+		double weight;
+	};
+
+	//collect synapses
+	std::vector<gene> genes;
+	for (int i = 0; i < 7; i++) {//output neurons
+		gene transfer;
+		transfer.origin = &daughter->output_layer[i];
+		for (int j = 0; j < daughter->output_layer[i].synapses.size(); j++) {
+			if (daughter->output_layer[i].enabled[j]) {
+				transfer.end = daughter->output_layer[i].synapses[j];
+				transfer.innovation_number = daughter->output_layer[i].innovation_numbers[j];
+				transfer.weight = daughter->output_layer[i].weights[j];
+				genes.push_back(transfer);
+			}
+		}
+	}
+	for (int i = 0; i < daughter->hidden_neurons.size(); i++) {//hidden neurons
+		gene transfer;
+		transfer.origin = daughter->hidden_neurons[i];
+		for (int j = 0; j < daughter->hidden_neurons[i]->synapses.size(); j++) {
+			if (daughter->hidden_neurons[i]->enabled[j]) {
+				transfer.end = daughter->hidden_neurons[i]->synapses[j];
+				transfer.innovation_number = daughter->hidden_neurons[i]->innovation_numbers[j];
+				transfer.weight = daughter->hidden_neurons[i]->weights[j];
+				genes.push_back(transfer);
+			}
+		}
+	}
 	srand(seed++);
 	if (rand()%(4*daughter_mutability) == 0) {
-		struct gene {
-			neuron *origin = NULL;
-			neuron *end = NULL;
-			int innovation_number;
-			double weight;
-		};
-
-		//collect synapses
-		std::vector<gene> genes;
-		for (int i = 0; i < 7; i++) {//output neurons
-			gene transfer;
-			transfer.origin = &daughter->output_layer[i];
-			for (int j = 0; j < daughter->output_layer[i].synapses.size(); j++) {
-				if (daughter->output_layer[i].enabled[j]) {
-					transfer.end = daughter->output_layer[i].synapses[j];
-					transfer.innovation_number = daughter->output_layer[i].innovation_numbers[j];
-					transfer.weight = daughter->output_layer[i].weights[j];
-					genes.push_back(transfer);
-				}
-			}
-		}
-		for (int i = 0; i < daughter->hidden_neurons.size(); i++) {//hidden neurons
-			gene transfer;
-			transfer.origin = daughter->hidden_neurons[i];
-			for (int j = 0; j < daughter->hidden_neurons[i]->synapses.size(); j++) {
-				if (daughter->hidden_neurons[i]->enabled[j]) {
-					transfer.end = daughter->hidden_neurons[i]->synapses[j];
-					transfer.innovation_number = daughter->hidden_neurons[i]->innovation_numbers[j];
-					transfer.weight = daughter->hidden_neurons[i]->weights[j];
-					genes.push_back(transfer);
-				}
-			}
-		}
 
 		//pick synapse to split
 		srand(seed++);
@@ -661,6 +664,9 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		split.origin->add_synapse(daughter->hidden_neurons[daughter->hidden_neurons.size()-1], 1);
 		daughter->hidden_neurons[daughter->hidden_neurons.size()-1]->add_synapse(split.end, split.weight);
 	}
+
+	daughter->no_of_synapses = genes.size();
+	daughter->name.load_text("H" + std::to_string(daughter->hidden_neurons.size()) + " S" + std::to_string(genes.size()) + " F0", {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 
 	return *daughter;
 }

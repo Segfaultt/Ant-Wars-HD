@@ -68,11 +68,12 @@ class neat_ant : public ant {
 		 * 6	|	ability
 		 */
 		double damage_given, damage_taken;
-		int fights;
+		int fights, no_of_synapses;
 		int mutability;//Pr(mutation) = 1/mutability
 		bool window_open;
 		SDL_Window *brain_window;
 		SDL_Renderer *brain_renderer;
+		texture_wrapper name;
 };
 
 #include "neat_ants.cpp"
