@@ -59,6 +59,7 @@ class ant {
 		void set_grease_effect(bool on);
 		void change_speed(double value);
 		void set_position(int new_x, int new_y);
+		void reset();
 
 		//getters
 		int get_x();

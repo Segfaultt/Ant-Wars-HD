@@ -9,30 +9,14 @@
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
 {
-	angular_momentum = 0;
-	tenticles_out = 0;
-	grease_effect = 1;
-	arc_turn = 0;
-	flip_timer = 0;
-	type = type_;
-	nip_out_timer = 0;
-	nip_damage = 40;
-	laser_on = 0;
-	guitar = 0;
-	alive = true;
-	mass = 1;
-	velocity[0] = 0;
-	velocity[1] = 0;
-	speed = 8;
-	turn_speed = 5;
-	health = 100;
-	stamina = 100;
-	stamina_regen = 0.22;
 	x = starting_x;
 	y = starting_y;
-	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
-	tesla_bolt = NULL;
-	tesla_target = NULL;
+	type = type_;
+	bar_health = NULL;
+	bar_stamina = NULL;
+
+	reset();
+
 	//ai stuff
 	state = AGGRESSIVE;
 	srand(seed++);
@@ -42,9 +26,6 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	srand(seed++);
 
 
-	bar_health = new bar(90, 10);
-	bar_stamina = new bar(60, 7);
-
 	if (x > SCREEN_WIDTH/2) {
 		bearing = 270;
 		angle = 180;
@@ -52,69 +33,6 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 		bearing = 90;
 		angle = 0;
 	}
-
-	switch (type) {
-		case YA_BOY:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/ya_boy.png");
-			break;
-		case LUCA:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/luca.png");
-			break;
-		case CSS_BAD:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/jeff.png");
-			break;
-		case HIPSTER:
-			guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
-			speed *= 1.2;
-			mass *= 0.6;
-			break;
-		case BOT:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
-			speed *= 0.8;
-			turn_speed *= 0.8;
-			health *= 0.5;
-			nip_damage *= 0.8;
-			stamina_regen *= 0.5;
-			break;
-
-		case MOONBOY:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/moonboy.png");
-			nip_damage *= 1.5;
-			mass *= 2;
-			break;
-
-		case ARC:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/the_arc.png");
-			speed *= 1.5;
-			break;
-
-		case GREASY_BOY:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
-			speed *= 0.7;
-			nip_damage *= 0.8;
-			mass *= 0.8;
-			break;
-
-		case WEEB:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/weeb.png");
-			tenticle_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/tenticles.png");
-			speed *= 1.2;
-			turn_speed *= 1.5;
-			break;
-		case MATT:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/fidget_spinner.png");
-			speed *= 1.4;
-			break;
-		case ANTDO:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/antdo.png");
-			break;
-
-		case QUEEN:
-			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/queen.png");
-			nip_damage *= 0.6;
-			break;
-	};
 }
 
 void ant::set_other_ants(std::vector<ant *> other_ants_)
@@ -818,4 +736,104 @@ void ant::ai(ant *target)
 		state = FLEE;
 	else
 		state = AGGRESSIVE;
+}
+
+void ant::reset()
+{
+	angular_momentum = 0;
+	tenticles_out = 0;
+	grease_effect = 1;
+	arc_turn = 0;
+	flip_timer = 0;
+	nip_out_timer = 0;
+	nip_damage = 40;
+	laser_on = 0;
+	guitar = 0;
+	alive = true;
+	mass = 1;
+	velocity[0] = 0;
+	velocity[1] = 0;
+	speed = 8;
+	turn_speed = 5;
+	health = 100;
+	stamina = 100;
+	stamina_regen = 0.22;
+	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
+	tesla_bolt = NULL;
+	tesla_target = NULL;
+	
+	if (bar_health != NULL) {
+		delete bar_health;
+		bar_health = NULL;
+	}
+	if (bar_stamina != NULL) {
+		delete bar_stamina;
+		bar_stamina = NULL;
+	}
+	bar_health = new bar(90, 10);
+	bar_stamina = new bar(60, 7);
+
+
+	switch (type) {
+		case YA_BOY:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/ya_boy.png");
+			break;
+		case LUCA:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/luca.png");
+			break;
+		case CSS_BAD:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/jeff.png");
+			break;
+		case HIPSTER:
+			guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
+			speed *= 1.2;
+			mass *= 0.6;
+			break;
+		case BOT:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
+			speed *= 0.8;
+			turn_speed *= 0.8;
+			health *= 0.5;
+			nip_damage *= 0.8;
+			stamina_regen *= 0.5;
+			break;
+
+		case MOONBOY:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/moonboy.png");
+			nip_damage *= 1.5;
+			mass *= 2;
+			break;
+
+		case ARC:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/the_arc.png");
+			speed *= 1.5;
+			break;
+
+		case GREASY_BOY:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
+			speed *= 0.7;
+			nip_damage *= 0.8;
+			mass *= 0.8;
+			break;
+
+		case WEEB:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/weeb.png");
+			tenticle_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/tenticles.png");
+			speed *= 1.2;
+			turn_speed *= 1.5;
+			break;
+		case MATT:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/fidget_spinner.png");
+			speed *= 1.4;
+			break;
+		case ANTDO:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/antdo.png");
+			break;
+
+		case QUEEN:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/queen.png");
+			nip_damage *= 0.6;
+			break;
+	};
 }

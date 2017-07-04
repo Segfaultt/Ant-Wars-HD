@@ -91,6 +91,7 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 	brain_window = NULL;
 	brain_renderer = NULL;
 	mutability = 6;
+	fights = 0;
 
 	//set all nodes to default
 	for (int i = 0; i < 7; i++) {
@@ -241,10 +242,16 @@ double neat_ant::get_fitness()
 	return damage_given/damage_taken;
 }
 
+int neat_ant::get_fights() 
+{
+	return fights;
+}
+
 void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_match)
 {
 	damage_given += damage_given_in_match;
 	damage_taken += damage_taken_in_match;
+	fights++;
 }
 
 void neat_ant::display_brain()

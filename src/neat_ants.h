@@ -30,6 +30,7 @@ class neat_ant : public ant {
 		~neat_ant();
 		void tick();
 		double get_fitness();
+		int get_fights();
 		void add_result(double damage_given_in_match, double damage_taken_in_match);
 		void display_brain();
 		void close_display();
@@ -67,6 +68,7 @@ class neat_ant : public ant {
 		 * 6	|	ability
 		 */
 		double damage_given, damage_taken;
+		int fights;
 		int mutability;//Pr(mutation) = 1/mutability
 		bool window_open;
 		SDL_Window *brain_window;

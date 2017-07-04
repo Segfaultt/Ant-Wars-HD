@@ -280,13 +280,11 @@ int main()
 	//neat set up
 	neuron_id = 20;
 	innovation_number = 0;
-	neat_ant *gladiator1 = NULL, *gladiator2 = NULL, *mother = NULL, *father = NULL;
-	father = new neat_ant(LUCA, 0, 0);
-	father->set_as_starter();
-	mother = &cross_over(*father, *father);
-	int generation;
+	neat_ant *gladiator1 = NULL, *gladiator2 = NULL;
+	int generation, match_of_generation;
 	texture_wrapper generation_counter;
 	int ticks_left;
+	std::vector<neat_ant *> population;
 
 	//=====main loop=====
 	bool quit = false;
@@ -319,22 +317,33 @@ int main()
 				right_ant->set_other_ants({left_ant});
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_3) {
 				ui_state = NEAT_MENU;
-				generation = 0;
+				generation = 1;
+				match_of_generation = 0;
+				population.clear();
+				neat_ant *first_ancestor = new neat_ant(LUCA, 0, 0);
+				first_ancestor->set_as_starter();
+				for (int i = 0; i < 100; i++)
+					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_1) {
-				generation++;
-				generation_counter.load_text("Generation: " + std::to_string(generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
-				//ticks_left = 1500;//~5s real time 25s @ 60fps
+				if (match_of_generation >= 1000) //1000 matches per generation at least 10 matches per ant
+					generation++;
+
+				match_of_generation++;
+				generation_counter.load_text("Generation: " + std::to_string(generation) + "-" + std::to_string(match_of_generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 				ticks_left = 720;//~2.5s real time 12s @ 60fps
 				ui_state = NEAT_GAME;
 
-				gladiator1 = &cross_over(*mother, *father);
-				gladiator2 = &cross_over(*mother, *father);
+				gladiator1 = population[floor(match_of_generation/10)];
+				srand(seed++);
+				gladiator2 = population[rand()%100];
 				gladiator1->set_position(50, SCREEN_HEIGHT/2);
 				gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
 				gladiator1->set_other_ants({gladiator2});
 				gladiator2->set_other_ants({gladiator1});
 				gladiator1->flipped = true;
 				gladiator2->flipped = false;
+				gladiator1->reset();
+				gladiator2->reset();
 			} else if (ui_state == NEAT_GAME && e.key.keysym.sym == SDLK_l) {
 				gladiator1->display_brain();
 			} else if (ui_state == NEAT_GAME && e.key.keysym.sym == SDLK_r) {
@@ -580,20 +589,18 @@ int main()
 			generation_counter.render((SCREEN_WIDTH - generation_counter.get_width())/2, 50);
 
 			if (ticks_left-- <= 0 || !(gladiator1->is_alive() && gladiator2->is_alive())) {
+				gladiator1->add_result(100 - gladiator2->get_health(), 100 - gladiator1->get_health());
+				gladiator2->add_result(100 - gladiator1->get_health(), 100 - gladiator2->get_health());
 				gladiator1->close_display();
 				gladiator2->close_display();
 				ui_state = NEAT_MENU;
-				delete(mother);
-				delete(father);
-				mother = gladiator1;
-				father = gladiator2;
 				gladiator1 = NULL;
 				gladiator2 = NULL;
 			}
 		}
 
 		//frame cap
-		if (ui_state != NEAT_GAME) {
+		//if (ui_state != NEAT_GAME) {
 			if (fps_timer.get_time() > 1000) {
 				fps = frames/(fps_timer.get_time() / 1000);
 				//fps count
@@ -607,7 +614,7 @@ int main()
 				SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
 			}
 			frames++;
-		}
+		//}
 
 		//render
 		SDL_RenderPresent(renderer);
