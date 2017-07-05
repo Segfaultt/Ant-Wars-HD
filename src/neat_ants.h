@@ -36,6 +36,7 @@ class neat_ant : public ant {
 		void close_display();
 		bool flipped;
 		void set_as_starter();
+		int get_id();
 		friend neat_ant& cross_over(neat_ant &mother, neat_ant &father);
 		friend double compatibility_distance(neat_ant &ant1, neat_ant &ant2);
 
@@ -69,7 +70,7 @@ class neat_ant : public ant {
 		 * 6	|	ability
 		 */
 		double damage_given, damage_taken;
-		int fights, no_of_synapses;
+		int fights, no_of_synapses, id;
 		int mutability;//Pr(mutation) = 1/mutability
 		bool window_open;
 		SDL_Window *brain_window;

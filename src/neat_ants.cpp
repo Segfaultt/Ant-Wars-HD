@@ -92,6 +92,7 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 	brain_renderer = NULL;
 	mutability = 6;
 	fights = 0;
+	id = ant_id++;
 
 	//set all nodes to default
 	for (int i = 0; i < 7; i++) {
@@ -254,7 +255,7 @@ void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_m
 	damage_given += damage_given_in_match;
 	damage_taken += damage_taken_in_match;
 	fights++;
-	name.load_text("H" + std::to_string(hidden_neurons.size()) + " S" + std::to_string(no_of_synapses) + " G" + std::to_string(fights)+ " F" + std::to_string((int)get_fitness()), {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+	name.load_text("ID" + std::to_string(id) + " H" + std::to_string(hidden_neurons.size()) + " S" + std::to_string(no_of_synapses) + " G" + std::to_string(fights)+ " F" + std::to_string((int)get_fitness()), {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 }
 
 void neat_ant::display_brain()
@@ -657,7 +658,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	}
 
 	daughter->no_of_synapses = genes.size();
-	daughter->name.load_text("H" + std::to_string(daughter->hidden_neurons.size()) + " S" + std::to_string(genes.size()) + " G0 F0", {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+	daughter->name.load_text("ID" + std::to_string(daughter->get_id()) + " H" + std::to_string(daughter->hidden_neurons.size()) + " S" + std::to_string(genes.size()) + " G0 F0", {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 
 	return *daughter;
 }
@@ -743,4 +744,9 @@ bool compare_ants(neat_ant *first, neat_ant *second, std::vector<neat_ant *> pop
 bool compare_ants_raw(neat_ant *first, neat_ant *second)
 {
 	return first->get_fitness() > second->get_fitness();
+}
+
+int neat_ant::get_id()
+{
+	return id;
 }

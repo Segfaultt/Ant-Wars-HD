@@ -28,6 +28,7 @@ SDL_Window* window = NULL;
 int seed = time(NULL);
 int innovation_number;
 int neuron_id;
+int ant_id;
 
 bool quit = false; //looping flag
 
@@ -280,6 +281,7 @@ int main()
 	//neat set up
 	neuron_id = 20;
 	innovation_number = 0;
+	ant_id = 0;
 	neat_ant *gladiator1 = NULL, *gladiator2 = NULL;
 	int generation, match_of_generation;
 	texture_wrapper generation_counter;
