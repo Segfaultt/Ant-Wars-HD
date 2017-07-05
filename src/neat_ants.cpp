@@ -241,7 +241,7 @@ void neat_ant::tick()
 
 double neat_ant::get_fitness()
 {
-	return pow(damage_given/damage_taken, 2);
+	return damage_given/damage_taken;
 }
 
 int neat_ant::get_fights() 
@@ -419,13 +419,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		}
 	}
 
-	//sort hidden neurons by ID
-	//std::sort(daughter->hidden_neurons.begin(), daughter->hidden_neurons.end(), compare_neurons);
-	//cross over output synapses
 	for (int i = 0; i < 7; i++) {
-		//sort synapses
-		/*std::sort(fitter_parent->output_layer[i].synapses.begin(), fitter_parent->output_layer[i].synapses.end(), compare_neurons);
-		  std::sort(not_fitter_parent->output_layer[i].synapses.begin(), not_fitter_parent->output_layer[i].synapses.end(), compare_neurons);*/
 
 		for (int n = 0; n < fitter_parent->output_layer[i].synapses.size(); n++) {
 			bool common_gene = false;
@@ -504,9 +498,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 
 	//cross over hidden synapses
 	for (int i = 0; i < fitter_parent->hidden_neurons.size(); i++) {
-		//sort synapses
-		//std::sort(fitter_parent->hidden_neurons[i]->synapses.begin(), fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
-		//std::sort(not_fitter_parent->hidden_neurons[i]->synapses.begin(), not_fitter_parent->hidden_neurons[i]->synapses.end(), compare_neurons);
 		for (int n = 0; n < fitter_parent->hidden_neurons[i]->synapses.size(); n++) {
 			bool common_gene = false;
 			int target_innovation_number = fitter_parent->hidden_neurons[i]->innovation_numbers[n];
@@ -669,4 +660,66 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	daughter->name.load_text("H" + std::to_string(daughter->hidden_neurons.size()) + " S" + std::to_string(genes.size()) + " F0", {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 
 	return *daughter;
+}
+
+double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
+{
+	int disjoint = 0;//excess and disjoint count
+	double weight_difference = 0;//weights and biases
+
+	//maximum total neurons and synapses
+	int N = std::max(ant1.no_of_synapses + ant1.hidden_neurons.size(), ant2.no_of_synapses + ant2.hidden_neurons.size());
+	//maximum total of synapses
+	int Nsynapses = std::max(ant1.no_of_synapses, ant2.no_of_synapses);
+
+	//sum output bias difference
+	for (int i = 0; i < 7; i++) {
+		weight_difference += abs(ant1.output_layer[i].bias - ant2.output_layer[i].bias);
+	}
+
+	//sum output synapse weight
+	for (int i = 0; i < 7; i++) {
+		double sum1 = 0,
+		       sum2 = 0;
+		for (int k = 0; k < ant1.output_layer[i].synapses.size(); k++) {
+			sum1 += ant1.output_layer[i].weights[k];
+		}
+		for (int k = 0; k < ant2.output_layer[i].synapses.size(); k++) {
+			sum2 += ant2.output_layer[i].weights[k];
+		}
+
+		weight_difference += abs(sum1 - sum2);
+	}
+
+	//hidden layer disjoint and excess neurons
+	disjoint += abs(ant1.hidden_neurons.size() - ant2.hidden_neurons.size());
+
+	//hidden layer weighting differences
+	{
+		std::sort(ant1.hidden_neurons.begin(), ant1.hidden_neurons.end(), compare_neurons);
+		std::sort(ant2.hidden_neurons.begin(), ant2.hidden_neurons.end(), compare_neurons);
+
+		int iterator1 = 0,
+		    iterator2 = 0;
+		while (iterator1 < ant1.hidden_neurons.size() && iterator2 < ant2.hidden_neurons.size()) {
+			if (ant1.hidden_neurons[iterator1]->id == ant2.hidden_neurons[iterator2]->id) {
+				double sum1 = 0,
+				       sum2 = 0;
+
+				for (int k = 0; k < ant1.hidden_neurons[iterator1]->synapses.size(); k++)
+					sum1 += ant1.hidden_neurons[iterator1]->weights[k];
+				for (int k = 0; k < ant1.hidden_neurons[iterator1]->synapses.size(); k++)
+					sum2 += ant2.hidden_neurons[iterator2]->weights[k];
+
+				weight_difference += abs(sum1 - sum2) + abs(ant1.hidden_neurons[iterator1]->bias - ant2.hidden_neurons[iterator2]->bias);
+			} else {
+				if (ant1.hidden_neurons[iterator1]->id > ant2.hidden_neurons[iterator2]->id)
+					iterator2++;
+				else
+					iterator1++;
+			}
+		}
+	}
+
+	return 200*disjoint/N + 330*weight_difference/Nsynapses + 300*(ant1.type != ant2.type);
 }
