@@ -531,18 +531,29 @@ int main()
 		}
 		//start new match
 		if (ui_state == NEAT_MENU && matches_to_do > 0) {
-			if (match_of_generation >= 1000) //1000 matches per generation at least 10 matches per ant
-				generation++;
-
 			match_of_generation++;
+			if (match_of_generation >= 10 * population.size()) {//1000 matches per generation at least 10 matches per ant. 20 matches average
+				generation++;
+				match_of_generation = 0;
+				//sort based on fittness (fitter first)
+				std::sort(population.begin(), population.end(), [population](neat_ant *a, neat_ant *b){return compare_ants(a,b,population);});
+				//std::sort(population.begin(), population.end(), compare_ants_raw);
+
+				std::vector<neat_ant *>::const_iterator last = population.begin() + population.size()/4;
+				std::vector<neat_ant *>::const_iterator first = population.begin();
+				std::vector<neat_ant *> survivors(first, last);
+			}
+
 			generation_counter.load_text("Generation: " + std::to_string(generation) + "-" + std::to_string(match_of_generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 			matches_to_do--;
 			ticks_left = 720;//~2.5s real time 12s @ 60fps
 			ui_state = NEAT_GAME;
 
 			gladiator1 = population[floor(match_of_generation/10)];
-			srand(seed++);
-			gladiator2 = population[rand()%100];
+			do {
+				srand(seed++);
+				gladiator2 = population[rand()%population.size()];
+			} while (gladiator2 == gladiator1);
 			gladiator1->set_position(50, SCREEN_HEIGHT/2);
 			gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
 			gladiator1->set_other_ants({gladiator2});
@@ -622,19 +633,19 @@ int main()
 
 		//frame cap
 		if (ui_state != NEAT_GAME) {
-		if (fps_timer.get_time() > 1000) {
-			fps = frames/(fps_timer.get_time() / 1000);
-			//fps count
-			if (show_fps) {
-				fps_count.load_text(std::to_string((int)fps), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
-				fps_count.render(0, 0);
-			}
+			if (fps_timer.get_time() > 1000) {
+				fps = frames/(fps_timer.get_time() / 1000);
+				//fps count
+				if (show_fps) {
+					fps_count.load_text(std::to_string((int)fps), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+					fps_count.render(0, 0);
+				}
 
-		}
-		if (TICKS_PER_FRAME > cap_timer.get_time()) {
-			SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
-		}
-		frames++;
+			}
+			if (TICKS_PER_FRAME > cap_timer.get_time()) {
+				SDL_Delay(TICKS_PER_FRAME - cap_timer.get_time());
+			}
+			frames++;
 		}
 
 		//render

@@ -241,7 +241,7 @@ void neat_ant::tick()
 
 double neat_ant::get_fitness()
 {
-	return damage_given/damage_taken;
+	return 100 * damage_given/damage_taken;
 }
 
 int neat_ant::get_fights() 
@@ -254,7 +254,7 @@ void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_m
 	damage_given += damage_given_in_match;
 	damage_taken += damage_taken_in_match;
 	fights++;
-	name.load_text("H" + std::to_string(hidden_neurons.size()) + " S" + std::to_string(no_of_synapses) + " F" + std::to_string(fights), {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+	name.load_text("H" + std::to_string(hidden_neurons.size()) + " S" + std::to_string(no_of_synapses) + " G" + std::to_string(fights)+ " F" + std::to_string((int)get_fitness()), {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 }
 
 void neat_ant::display_brain()
@@ -657,7 +657,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	}
 
 	daughter->no_of_synapses = genes.size();
-	daughter->name.load_text("H" + std::to_string(daughter->hidden_neurons.size()) + " S" + std::to_string(genes.size()) + " F0", {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+	daughter->name.load_text("H" + std::to_string(daughter->hidden_neurons.size()) + " S" + std::to_string(genes.size()) + " G0 F0", {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 
 	return *daughter;
 }
@@ -722,4 +722,25 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 	}
 
 	return 200*disjoint/N + 330*weight_difference/Nsynapses + 300*(ant1.type != ant2.type);
+}
+
+double get_adjusted_fittness(neat_ant *target_ant, std::vector<neat_ant *> population)
+{
+	int denominator = 1;
+	const double threshold = 5;
+	for (neat_ant *i : population) {
+		denominator += (compatibility_distance(*target_ant, *i) < threshold);
+	}
+
+	return target_ant->get_fitness()/denominator;
+}
+
+bool compare_ants(neat_ant *first, neat_ant *second, std::vector<neat_ant *> population)
+{
+	return get_adjusted_fittness(first, population) > get_adjusted_fittness(second, population);
+}
+
+bool compare_ants_raw(neat_ant *first, neat_ant *second)
+{
+	return first->get_fitness() > second->get_fitness();
 }
