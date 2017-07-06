@@ -291,8 +291,8 @@ void ant::apply_physics()
 	y += velocity[1];
 
 	//wrap position
-	const int out_of_bounds_border = 300;
-	if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
+	const int out_of_bounds_border = -30;
+	/*if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
 		x = -out_of_bounds_border - 50;
 	if (x + 50 < -out_of_bounds_border)
 		x = SCREEN_WIDTH + out_of_bounds_border - 50;
@@ -300,6 +300,15 @@ void ant::apply_physics()
 		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
 	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
 		y = -out_of_bounds_border - 50;
+		*/
+	if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
+		x = SCREEN_WIDTH + out_of_bounds_border - 50;
+	if (x + 50 < -out_of_bounds_border)
+		x = -out_of_bounds_border - 50;
+	if (y + 50 < -out_of_bounds_border)
+		y = -out_of_bounds_border - 50;
+	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
+		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
 
 	//apply angular momentum
 	bearing -= angular_momentum;

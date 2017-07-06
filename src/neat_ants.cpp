@@ -85,14 +85,16 @@ bool neuron::leads_to(neuron *other)
 //=====Ants=====
 neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, starting_x, starting_y)
 {
-	damage_given = 0;
-	damage_taken = 1;//no undefined or unreasonably high fitnesses from low damage_taken
+	damage_given = 50;
+	damage_taken = 50;//no undefined or unreasonably high fitnesses from low damage_taken
 	window_open = false;
 	brain_window = NULL;
 	brain_renderer = NULL;
 	mutability = 6;
 	fights = 0;
 	id = ant_id++;
+	fitness_known = false;
+	final_distance_sum = 0;
 
 	//set all nodes to default
 	for (int i = 0; i < 7; i++) {
@@ -242,7 +244,7 @@ void neat_ant::tick()
 
 double neat_ant::get_fitness()
 {
-	return 100 * damage_given/damage_taken;
+	return (100 * damage_given/(damage_taken + final_distance_sum/15));
 }
 
 int neat_ant::get_fights() 
@@ -250,10 +252,11 @@ int neat_ant::get_fights()
 	return fights;
 }
 
-void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_match)
+void neat_ant::add_result(double damage_given_in_match, double damage_taken_in_match, double final_distance)
 {
 	damage_given += damage_given_in_match;
 	damage_taken += damage_taken_in_match;
+	final_distance_sum += final_distance;
 	fights++;
 	name.load_text("ID" + std::to_string(id) + " H" + std::to_string(hidden_neurons.size()) + " S" + std::to_string(no_of_synapses) + " G" + std::to_string(fights)+ " F" + std::to_string((int)get_fitness()), {0xff, 0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
 }
@@ -314,7 +317,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	srand(seed++);
 	if (rand()%(8 * daughter_mutability) == 0) {
 		srand(seed++);
-		daughter_type = ant_type(rand()%NO_OF_ANT_TYPE);
+		daughter_type = ant_type(rand()%(NO_OF_ANT_TYPE-1));
 	} else {
 		srand(seed++);
 		if (rand()%2 == 0)
@@ -713,6 +716,8 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 					sum2 += ant2.hidden_neurons[iterator2]->weights[k];
 
 				weight_difference += abs(sum1 - sum2) + abs(ant1.hidden_neurons[iterator1]->bias - ant2.hidden_neurons[iterator2]->bias);
+				iterator1++;
+				iterator2++;
 			} else {
 				if (ant1.hidden_neurons[iterator1]->id > ant2.hidden_neurons[iterator2]->id)
 					iterator2++;
@@ -731,19 +736,24 @@ bool same_species(neat_ant *a, neat_ant *b)
 	return compatibility_distance(*a, *b) < threshold;
 }
 
-double get_adjusted_fittness(neat_ant *target_ant, std::vector<neat_ant *> population)
+double neat_ant::get_adjusted_fittness(std::vector<neat_ant *> population)
 {
-	int denominator = 1;
-	for (neat_ant *i : population) {
-		denominator += same_species(target_ant, i);
+	if (!fitness_known) {
+		int denominator = 1;
+		for (neat_ant *i : population) {
+			denominator += same_species(this, i);
+		}
+
+		adjusted_fitness = get_fitness()/denominator;
+		fitness_known = true;
 	}
 
-	return target_ant->get_fitness()/denominator;
+	return 	adjusted_fitness;
 }
 
 bool compare_ants(neat_ant *first, neat_ant *second, std::vector<neat_ant *> population)
 {
-	return get_adjusted_fittness(first, population) > get_adjusted_fittness(second, population);
+	return first->get_adjusted_fittness(population) > second->get_adjusted_fittness(population);
 }
 
 bool compare_ants_raw(neat_ant *first, neat_ant *second)

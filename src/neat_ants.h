@@ -31,13 +31,14 @@ class neat_ant : public ant {
 		void tick();
 		double get_fitness();
 		int get_fights();
-		void add_result(double damage_given_in_match, double damage_taken_in_match);
+		void add_result(double damage_given_in_match, double damage_taken_in_match, double final_distance);
 		void display_brain();
 		void close_display();
 		bool flipped;
 		void set_as_starter();
 		int get_id();
 		int get_no_hidden_neurons();
+		double get_adjusted_fittness(std::vector<neat_ant *> population);
 		friend neat_ant& cross_over(neat_ant &mother, neat_ant &father);
 		friend double compatibility_distance(neat_ant &ant1, neat_ant &ant2);
 
@@ -70,10 +71,12 @@ class neat_ant : public ant {
 		 * 5	|	flip
 		 * 6	|	ability
 		 */
-		double damage_given, damage_taken;
+		double damage_given, damage_taken, final_distance_sum;
 		int fights, no_of_synapses, id;
 		int mutability;//Pr(mutation) = 1/mutability
-		bool window_open;
+		bool window_open,
+		     fitness_known;
+		double adjusted_fitness;
 		SDL_Window *brain_window;
 		SDL_Renderer *brain_renderer;
 		texture_wrapper name;

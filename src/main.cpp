@@ -29,6 +29,7 @@ int seed = time(NULL);
 int innovation_number;
 int neuron_id;
 int ant_id;
+const int no_of_matches = 5;
 
 bool quit = false; //looping flag
 
@@ -331,7 +332,7 @@ int main()
 				time(&raw_time);
 				f_highest_fittness.open("log/" + std::to_string(raw_time) + "_max_fittness.log", std::ios_base::trunc);
 				f_average_complexity.open("log/" + std::to_string(raw_time) + "_mean_complexity.log", std::ios_base::trunc);
-				for (int i = 0; i < 100; i++)
+				for (int i = 0; i < 80; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_9) {
 				matches_to_do = 2000;
@@ -541,7 +542,7 @@ int main()
 		//start new match
 		if (ui_state == NEAT_MENU && matches_to_do > 0) {
 			match_of_generation++;
-			if (match_of_generation >= 10 * population.size()) {//1000 matches per generation at least 10 matches per ant. 20 matches average
+			if (match_of_generation >= no_of_matches * population.size()) {//1000 matches per generation at least 10 matches per ant. 20 matches average
 				//store stats
 				double highest_fitness = 0;
 				for (neat_ant *i : population)
@@ -558,9 +559,34 @@ int main()
 				std::sort(population.begin(), population.end(), [population](neat_ant *a, neat_ant *b){return compare_ants(a,b,population);});
 				//std::sort(population.begin(), population.end(), compare_ants_raw);
 
-				std::vector<neat_ant *>::const_iterator last = population.begin() + population.size()/4;
+				//get survivors
+				const int divisor = 4;
+				std::vector<neat_ant *>::const_iterator last = population.begin() + population.size()/divisor;
 				std::vector<neat_ant *>::const_iterator first = population.begin();
 				std::vector<neat_ant *> survivors(first, last);
+
+				//breed survivors
+				std::vector<neat_ant *> new_population;
+				for (neat_ant *father : survivors) {
+					int count = divisor;
+					for (int i = 0; i < population.size() && count > 0; i++) {
+						if (same_species(population[i], father)) {
+							count--;
+							new_population.push_back(&cross_over(*father, *population[i]));
+						}
+					}
+
+					//small species have to asexually reproduce
+					while (count > 0) {
+						count--;
+						new_population.push_back(&cross_over(*father, *father));
+					}
+				}
+				std::cout << population.size() << '\t' << new_population.size();
+				population.clear();//kill old ants
+				population = new_population;
+				new_population.clear();
+				survivors.clear();
 			}
 
 			generation_counter.load_text("Generation: " + std::to_string(generation) + "-" + std::to_string(match_of_generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
@@ -568,7 +594,7 @@ int main()
 			ticks_left = 720;//~2.5s real time 12s @ 60fps
 			ui_state = NEAT_GAME;
 
-			gladiator1 = population[floor(match_of_generation/10)];
+			gladiator1 = population[floor(match_of_generation/no_of_matches)];
 			do {
 				srand(seed++);
 				gladiator2 = population[rand()%population.size()];
@@ -640,8 +666,8 @@ int main()
 			generation_counter.render((SCREEN_WIDTH - generation_counter.get_width())/2, 50);
 
 			if (ticks_left-- <= 0 || !(gladiator1->is_alive() && gladiator2->is_alive())) {
-				gladiator1->add_result(100 - gladiator2->get_health(), 100 - gladiator1->get_health());
-				gladiator2->add_result(100 - gladiator1->get_health(), 100 - gladiator2->get_health());
+				gladiator1->add_result(100 - gladiator2->get_health(), 100 - gladiator1->get_health(), PYTHAG(gladiator1->get_x() - gladiator2->get_x(), gladiator1->get_y() - gladiator2->get_y()));
+				gladiator2->add_result(100 - gladiator1->get_health(), 100 - gladiator2->get_health(), PYTHAG(gladiator1->get_x() - gladiator2->get_x(), gladiator1->get_y() - gladiator2->get_y()));
 				gladiator1->close_display();
 				gladiator2->close_display();
 				ui_state = NEAT_MENU;
