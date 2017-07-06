@@ -279,14 +279,14 @@ int main()
 	}
 
 	//neat set up
-	neuron_id = 20;
-	innovation_number = 0;
-	ant_id = 0;
 	neat_ant *gladiator1 = NULL, *gladiator2 = NULL;
 	int generation, match_of_generation;
 	texture_wrapper generation_counter;
 	int ticks_left, matches_to_do = 0;
 	std::vector<neat_ant *> population;
+	std::ofstream f_average_complexity,
+		f_highest_fittness;
+
 
 	//=====main loop=====
 	bool quit = false;
@@ -319,11 +319,18 @@ int main()
 				right_ant->set_other_ants({left_ant});
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_3) {
 				ui_state = NEAT_MENU;
+				neuron_id = 20;
+				innovation_number = 0;
+				ant_id = 0;
 				generation = 1;
 				match_of_generation = -1;
 				population.clear();
 				neat_ant *first_ancestor = new neat_ant(WEEB, 0, 0);
 				first_ancestor->set_as_starter();
+				time_t raw_time;
+				time(&raw_time);
+				f_highest_fittness.open("log/" + std::to_string(raw_time) + "_max_fittness.log", std::ios_base::trunc);
+				f_average_complexity.open("log/" + std::to_string(raw_time) + "_mean_complexity.log", std::ios_base::trunc);
 				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_9) {
@@ -535,6 +542,16 @@ int main()
 		if (ui_state == NEAT_MENU && matches_to_do > 0) {
 			match_of_generation++;
 			if (match_of_generation >= 10 * population.size()) {//1000 matches per generation at least 10 matches per ant. 20 matches average
+				//store stats
+				double highest_fitness = 0;
+				for (neat_ant *i : population)
+					if (i->get_fitness() > highest_fitness)
+						highest_fitness = i->get_fitness();
+				f_highest_fittness << highest_fitness << std::endl;
+				int total_hidden_neurons = 0;
+				for (neat_ant *i : population)
+					total_hidden_neurons += i->get_no_hidden_neurons();
+				f_average_complexity << total_hidden_neurons/population.size() << std::endl;
 				generation++;
 				match_of_generation = 0;
 				//sort based on fittness (fitter first)

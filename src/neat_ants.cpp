@@ -725,12 +725,17 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 	return 200*disjoint/N + 330*weight_difference/Nsynapses + 300*(ant1.type != ant2.type);
 }
 
+bool same_species(neat_ant *a, neat_ant *b)
+{
+	const double threshold = 5;
+	return compatibility_distance(*a, *b) < threshold;
+}
+
 double get_adjusted_fittness(neat_ant *target_ant, std::vector<neat_ant *> population)
 {
 	int denominator = 1;
-	const double threshold = 5;
 	for (neat_ant *i : population) {
-		denominator += (compatibility_distance(*target_ant, *i) < threshold);
+		denominator += same_species(target_ant, i);
 	}
 
 	return target_ant->get_fitness()/denominator;
@@ -749,4 +754,9 @@ bool compare_ants_raw(neat_ant *first, neat_ant *second)
 int neat_ant::get_id()
 {
 	return id;
+}
+
+int neat_ant::get_no_hidden_neurons()
+{
+	return hidden_neurons.size();
 }

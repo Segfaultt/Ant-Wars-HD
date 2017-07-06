@@ -37,6 +37,7 @@ class neat_ant : public ant {
 		bool flipped;
 		void set_as_starter();
 		int get_id();
+		int get_no_hidden_neurons();
 		friend neat_ant& cross_over(neat_ant &mother, neat_ant &father);
 		friend double compatibility_distance(neat_ant &ant1, neat_ant &ant2);
 
