@@ -140,7 +140,6 @@ void ant::render()
 		double m = atan(angle * PI_OVER_180);
 		double c = y - m * x;
 
-		std::cout << "y = " << m << "x + " << c << std::endl;
 		//check if hit
 		for (ant *i : other_ants) {
 			double y_difference, x_difference;
@@ -300,7 +299,8 @@ void ant::apply_physics()
 		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
 	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
 		y = -out_of_bounds_border - 50;
-		*/
+
+	//cap position
 	if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
 		x = SCREEN_WIDTH + out_of_bounds_border - 50;
 	if (x + 50 < -out_of_bounds_border)
@@ -309,6 +309,7 @@ void ant::apply_physics()
 		y = -out_of_bounds_border - 50;
 	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
 		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
+		*/
 
 	//apply angular momentum
 	bearing -= angular_momentum;

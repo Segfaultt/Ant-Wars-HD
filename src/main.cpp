@@ -29,7 +29,7 @@ int seed = time(NULL);
 int innovation_number;
 int neuron_id;
 int ant_id;
-const int no_of_matches = 5;
+const int no_of_matches = 10;
 
 bool quit = false; //looping flag
 
@@ -300,7 +300,7 @@ int main()
 		cap_timer.start();
 		//=====input events=====
 		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT | e.key.keysym.sym == SDLK_ESCAPE)
+			if (e.type == SDL_QUIT)
 				quit = true;
 			if (e.key.keysym.sym == SDLK_f)
 				show_fps = true; //!show_fps;
@@ -332,7 +332,7 @@ int main()
 				time(&raw_time);
 				f_highest_fittness.open("log/" + std::to_string(raw_time) + "_max_fittness.log", std::ios_base::trunc);
 				f_average_complexity.open("log/" + std::to_string(raw_time) + "_mean_complexity.log", std::ios_base::trunc);
-				for (int i = 0; i < 80; i++)
+				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_9) {
 				matches_to_do = 2000;
