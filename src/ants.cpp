@@ -137,31 +137,12 @@ void ant::render()
 		double y_gradient = sin(angle * PI_OVER_180);
 		thickLineRGBA(renderer, 45 * x_gradient + x + 50, -45 * y_gradient + y + 50, (SCREEN_WIDTH + SCREEN_HEIGHT) * x_gradient + x + 50, -1 *(SCREEN_WIDTH + SCREEN_HEIGHT) * y_gradient + y + 50, 9, 0x97, 0x00, 0x00, 0xff);
 
-		double m = atan(angle * PI_OVER_180);
-		double c = y - m * x;
-
 		//check if hit
 		for (ant *i : other_ants) {
-			double y_difference, x_difference;
-			if ((bearing > 180 && x - i->get_x() < 0) || (bearing < 180 && x - i->get_x() > 0)) {//if facing the wrong direction
-				y_difference = 1000;
-				x_difference = 1000;
-			} else {
-				if (angle != 90 && angle != 270) {//if tan(angle * PI_OVER_180) is a number (tan(90) and tan(270) are undefined)
-					y_difference = abs(((i->get_x() - x) * tan(angle * PI_OVER_180) - y + 50) + i->get_y() - 50);
-					x_difference = abs(((i->get_y() - y) / tan(angle * PI_OVER_180) - x + 50) + i->get_x() - 50);
-				} else {
-					y_difference = 1000;
-					x_difference = abs(i->get_x() - x);
-				}
-			}
-			double smallest_difference;
-			if (y_difference > x_difference)
-				smallest_difference = x_difference;
-			else 
-				smallest_difference = y_difference;
-
-			if (smallest_difference < 50) {
+			std::vector<int> p = {i->get_x() - x, y - i->get_y()};
+			
+			double lambda = p[0]*cos(angle * PI_OVER_180) + p[1]*sin(angle * PI_OVER_180);
+			if (lambda >= 0 && 2500 >= pow(p[0], 2) + pow(p[1], 2) - pow(lambda, 2)) {
 				i->damage(5);
 
 				//push targets
@@ -292,24 +273,24 @@ void ant::apply_physics()
 	//wrap position
 	const int out_of_bounds_border = -30;
 	/*if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
-		x = -out_of_bounds_border - 50;
-	if (x + 50 < -out_of_bounds_border)
-		x = SCREEN_WIDTH + out_of_bounds_border - 50;
-	if (y + 50 < -out_of_bounds_border)
-		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
-	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
-		y = -out_of_bounds_border - 50;
+	  x = -out_of_bounds_border - 50;
+	  if (x + 50 < -out_of_bounds_border)
+	  x = SCREEN_WIDTH + out_of_bounds_border - 50;
+	  if (y + 50 < -out_of_bounds_border)
+	  y = SCREEN_HEIGHT + out_of_bounds_border - 50;
+	  if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
+	  y = -out_of_bounds_border - 50;
 
 	//cap position
 	if (x + 50 > SCREEN_WIDTH + out_of_bounds_border)
-		x = SCREEN_WIDTH + out_of_bounds_border - 50;
+	x = SCREEN_WIDTH + out_of_bounds_border - 50;
 	if (x + 50 < -out_of_bounds_border)
-		x = -out_of_bounds_border - 50;
+	x = -out_of_bounds_border - 50;
 	if (y + 50 < -out_of_bounds_border)
-		y = -out_of_bounds_border - 50;
+	y = -out_of_bounds_border - 50;
 	if (y + 50 > SCREEN_HEIGHT + out_of_bounds_border)
-		y = SCREEN_HEIGHT + out_of_bounds_border - 50;
-		*/
+	y = SCREEN_HEIGHT + out_of_bounds_border - 50;
+	*/
 
 	//apply angular momentum
 	bearing -= angular_momentum;
@@ -620,7 +601,7 @@ void ant::set_position(int new_x, int new_y)
 {
 	x = new_x;
 	y = new_y;
-	
+
 	if (x > SCREEN_WIDTH/2) {
 		bearing = 270;
 		angle = 180;
@@ -771,7 +752,7 @@ void ant::reset()
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
 	tesla_bolt = NULL;
 	tesla_target = NULL;
-	
+
 	if (bar_health != NULL) {
 		delete bar_health;
 		bar_health = NULL;
