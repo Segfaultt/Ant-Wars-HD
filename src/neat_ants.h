@@ -10,6 +10,7 @@ struct neuron {
 	double get_value();
 	void compute_value();
 	void add_synapse(neuron *other_neuron, double weight);
+	void add_synapse(neuron *other_neuron, double weight, int innovation_number_, bool enabled_);
 	void set_id();
 	bool operator<(const neuron& other);
 	bool leads_to(neuron *other);
@@ -26,19 +27,28 @@ struct neuron {
 
 class neat_ant : public ant {
 	public:
+		//other
 		neat_ant(ant_type type_, int starting_x, int starting_y);
 		~neat_ant();
+		bool flipped;
+
+		//actions
 		void tick();
-		double get_fitness();
-		int get_fights();
-		void add_result(double damage_given_in_match, double damage_taken_in_match, double final_distance);
+		void set_as_starter();
 		void display_brain();
 		void close_display();
-		bool flipped;
-		void set_as_starter();
+
+		//setters/adders
+		void add_result(double damage_given_in_match, double damage_taken_in_match, double final_distance);
+		//getters
 		int get_id();
 		int get_no_hidden_neurons();
 		double get_adjusted_fittness(std::vector<neat_ant *> population);
+		double get_fitness();
+		int get_fights();
+		int get_mutability();
+
+		//friends
 		friend neat_ant& cross_over(neat_ant &mother, neat_ant &father);
 		friend double compatibility_distance(neat_ant &ant1, neat_ant &ant2);
 

@@ -747,7 +747,7 @@ void ant::reset()
 	speed = 8;
 	turn_speed = 5;
 	health = 100;
-	stamina = 100;
+	stamina = 0;
 	stamina_regen = 0.22;
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
 	tesla_bolt = NULL;
@@ -827,4 +827,9 @@ void ant::reset()
 			nip_damage *= 0.6;
 			break;
 	};
+}
+
+ant_type ant::get_type()
+{
+	return type;
 }

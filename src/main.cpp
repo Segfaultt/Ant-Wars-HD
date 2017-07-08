@@ -286,7 +286,9 @@ int main()
 	int ticks_left, matches_to_do = 0;
 	std::vector<neat_ant *> population;
 	std::ofstream f_average_complexity,
-		f_highest_fittness;
+		f_highest_fittness,
+		f_types,
+		f_average_mutability;
 
 
 	//=====main loop=====
@@ -332,22 +334,31 @@ int main()
 				time(&raw_time);
 				f_highest_fittness.open("log/" + std::to_string(raw_time) + "_max_fittness.log", std::ios_base::trunc);
 				f_average_complexity.open("log/" + std::to_string(raw_time) + "_mean_complexity.log", std::ios_base::trunc);
+				f_average_mutability.open("log/" + std::to_string(raw_time) + "_mean_mutability.log", std::ios_base::trunc);
+				f_types.open("log/" + std::to_string(raw_time) + "_types.log", std::ios_base::trunc);
+				f_types << "YA_BOY LUCA CSS_BAD HIPSTER BOT MOONBOY ARC GREASY_BOY WEEB FIDGET_SPINNER ANTDO QUEEN" << std::endl;
 				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
+			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_0) {
+				matches_to_do = 999999999;
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_9) {
-				matches_to_do = 2000;
+				matches_to_do = 10000;
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_8) {
-				matches_to_do = 1000;
+				matches_to_do = 5000;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_7) {
-				matches_to_do = 500;
+				matches_to_do = 1000;
+				SDL_SetWindowSize(window, 2, 2);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_6) {
-				matches_to_do = 200;
+				matches_to_do = 500;
+				SDL_SetWindowSize(window, 2, 2);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_5) {
 				matches_to_do = 100;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_4) {
 				matches_to_do = 50;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_3) {
-				matches_to_do = 10;
+				//matches_to_do = 10;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_2) {
 				matches_to_do = 5;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_1) {
@@ -550,9 +561,22 @@ int main()
 						highest_fitness = i->get_fitness();
 				f_highest_fittness << highest_fitness << std::endl;
 				int total_hidden_neurons = 0;
-				for (neat_ant *i : population)
+				int total_mutability = 0;
+				int type_frequency[NO_OF_ANT_TYPE];
+				for (int i = 0; i < NO_OF_ANT_TYPE; i++)
+					type_frequency[i] = 0;
+				for (neat_ant *i : population) {
 					total_hidden_neurons += i->get_no_hidden_neurons();
-				f_average_complexity << total_hidden_neurons/population.size() << std::endl;
+					total_mutability += i->get_mutability();
+					type_frequency[i->get_type()]++;
+				}
+				f_average_complexity << (float)total_hidden_neurons/population.size() << std::endl;
+				f_average_mutability << (float)total_mutability/population.size() << std::endl;
+				for (int i = 0; i < NO_OF_ANT_TYPE; i++)
+					f_types << type_frequency[i] << ' ';
+				f_types << std::endl;
+
+				//prepare for next generation
 				generation++;
 				match_of_generation = 0;
 				//sort based on fittness (fitter first)
@@ -673,6 +697,10 @@ int main()
 				ui_state = NEAT_MENU;
 				gladiator1 = NULL;
 				gladiator2 = NULL;
+
+				if (matches_to_do <= 0) {
+					SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+				}
 			}
 		}
 

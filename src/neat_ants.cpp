@@ -23,7 +23,8 @@ void neuron::compute_value()
 	double z = bias;
 
 	for (int i = 0; i < synapses.size(); i++) {
-		z += synapses[i]->get_value() * weights[i];
+		if (enabled[i])
+			z += synapses[i]->get_value() * weights[i];
 	}
 
 	value = (1/(1 + exp(-z)));
@@ -31,11 +32,47 @@ void neuron::compute_value()
 }
 
 void neuron::add_synapse(neuron *other_neuron, double weight)//add an entirely new synapse
-{
-	synapses.push_back(other_neuron);
-	weights.push_back(weight);
-	innovation_numbers.push_back(innovation_number++);
-	enabled.push_back(true);
+{	//stop infinite recusion and duplicate synapses
+	bool is_valid_synapse = true;
+
+	neuron *self = this;
+	if (other_neuron == self)
+		is_valid_synapse = false;
+	for (neuron *i : other_neuron->synapses)
+		if (i->leads_to(self))
+			is_valid_synapse = false;
+	for (neuron *i : synapses)
+		if (i == other_neuron)
+			is_valid_synapse = false;
+
+	if (is_valid_synapse) {
+		synapses.push_back(other_neuron);
+		weights.push_back(weight);
+		innovation_numbers.push_back(innovation_number++);
+		enabled.push_back(true);
+	}
+}
+
+void neuron::add_synapse(neuron *other_neuron, double weight, int innovation_number_, bool enabled_)//add an already existing synapse
+{	//stop infinite recusion and duplicate synapses
+	bool is_valid_synapse = true;
+
+	neuron *self = this;
+	if (other_neuron == self)
+		is_valid_synapse = false;
+	for (neuron *i : other_neuron->synapses)
+		if (i->leads_to(self))
+			is_valid_synapse = false;
+	for (neuron *i : synapses)
+		if (i == other_neuron)
+			is_valid_synapse = false;
+
+	if (is_valid_synapse) {
+		synapses.push_back(other_neuron);
+		weights.push_back(weight);
+		innovation_numbers.push_back(innovation_number_);
+		enabled.push_back(enabled_);
+	}
 }
 
 bool neuron::operator<(const neuron& other)
@@ -244,7 +281,8 @@ void neat_ant::tick()
 
 double neat_ant::get_fitness()
 {
-	return (100 * damage_given/(damage_taken + final_distance_sum/15));
+	double average_distance = final_distance_sum/fights;
+	return (100 * pow(damage_given, 1.5)/(damage_taken + average_distance/3));
 }
 
 int neat_ant::get_fights() 
@@ -308,14 +346,14 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 {
 	int daughter_mutability = (mother.mutability + father.mutability)/ 2;
 	srand(seed++);
-	daughter_mutability += rand()%4 - 2;
+	daughter_mutability += rand()%3 - 1;
 	if (daughter_mutability <= 0)
 		daughter_mutability = 1;
 
 	//pick daughter type
 	ant_type daughter_type;
 	srand(seed++);
-	if (rand()%(8 * daughter_mutability) == 0) {
+	if (rand()%(4 * daughter_mutability) == 0) {
 		srand(seed++);
 		daughter_type = ant_type(rand()%(NO_OF_ANT_TYPE-1));
 	} else {
@@ -385,9 +423,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		if (rand()%daughter_mutability == 0) {//mutate bias
 			srand(seed++);
 			i->bias += ((double)(rand()%6))/10.0 - 0.3;
-			srand(seed++);
-			double coefficient = ((double)(rand()%5))/10.0 + 0.8;
-			i->bias *= coefficient;
 
 			if (i->bias > 10)
 				i->bias = 10;
@@ -412,11 +447,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		if (rand()%daughter_mutability == 0) {//mutate bias
 			srand(seed++);
 			daughter->output_layer[i].bias += ((double)(rand()%10))/10.0 - 0.5;
-			srand(seed++);
-			double coefficient = ((double)(rand()%10))/10.0 + 0.5;
-			if (coefficient == 0)
-				coefficient = 1;
-			daughter->output_layer[i].bias *= coefficient;
 			if (daughter->output_layer[i].bias > 10) daughter->output_layer[i].bias = 10; else if (daughter->output_layer[i].bias < -10)
 				daughter->output_layer[i].bias = -10;
 
@@ -483,9 +513,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			if (rand()%daughter_mutability == 0) {
 				srand(seed++);
 				weighting += ((double)(rand()%10))/10.0 - 0.5;
-				srand(seed++);
-				double coefficient = ((double)(rand()%10))/10.0 + 0.5;
-				weighting *= coefficient;
 
 				if (weighting > 10)
 					weighting = 10;
@@ -493,10 +520,11 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 					weighting = -10;
 			}
 
-			daughter->output_layer[i].synapses.push_back(target_neuron);
-			daughter->output_layer[i].weights.push_back(weighting);
-			daughter->output_layer[i].innovation_numbers.push_back(target_innovation_number);
-			daughter->output_layer[i].enabled.push_back(is_enabled);
+			/*daughter->output_layer[i].synapses.push_back(target_neuron);
+			  daughter->output_layer[i].weights.push_back(weighting);
+			  daughter->output_layer[i].innovation_numbers.push_back(target_innovation_number);
+			  daughter->output_layer[i].enabled.push_back(is_enabled);*/
+			daughter->output_layer[i].add_synapse(target_neuron, weighting, target_innovation_number, is_enabled);
 		}
 	}
 
@@ -561,9 +589,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			if (rand()%daughter_mutability == 0) {
 				srand(seed++);
 				weighting += ((double)(rand()%10))/10.0 - 0.5;
-				srand(seed++);
-				double coefficient = ((double)(rand()%10))/10.0 + 0.5;
-				weighting *= coefficient;
 
 				if (weighting > 10)
 					weighting = 10;
@@ -571,10 +596,11 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 					weighting = -10;
 			}
 
-			daughter->hidden_neurons[i]->synapses.push_back(target_neuron);
-			daughter->hidden_neurons[i]->weights.push_back(weighting);
-			daughter->hidden_neurons[i]->innovation_numbers.push_back(target_innovation_number);
-			daughter->hidden_neurons[i]->enabled.push_back(is_enabled);
+			/*daughter->hidden_neurons[i]->synapses.push_back(target_neuron);
+			  daughter->hidden_neurons[i]->weights.push_back(weighting);
+			  daughter->hidden_neurons[i]->innovation_numbers.push_back(target_innovation_number);
+			  daughter->hidden_neurons[i]->enabled.push_back(is_enabled);*/
+			daughter->hidden_neurons[i]->add_synapse(target_neuron, weighting, target_innovation_number, is_enabled);
 		}
 	}
 
@@ -585,7 +611,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		    end_index;
 		neuron *origin = NULL,
 		       *end = NULL;
-		bool is_valid_synapse;
 		srand(seed++);
 		origin_index = rand()%(7 + daughter->hidden_neurons.size());
 		end_index = rand()%(13 + daughter->hidden_neurons.size());
@@ -599,17 +624,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		else
 			end = daughter->hidden_neurons[end_index - 13];
 
-		//stop infinite recusion and duplicate synapses
-		is_valid_synapse = true;
-		for (neuron *i : end->synapses)
-			if (i->leads_to(origin))
-				is_valid_synapse = false;
-		for (neuron *i : origin->synapses)
-			if (i == end)
-				is_valid_synapse = false;
-
-		if (is_valid_synapse)
-			origin->add_synapse(end, 0);
+		origin->add_synapse(end, 0);
 	}
 
 	//mutate new neurons inside of synapses
@@ -727,7 +742,7 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 		}
 	}
 
-	return 200*disjoint/N + 330*weight_difference/Nsynapses + 300*(ant1.type != ant2.type);
+	return 200*disjoint/N + 50*weight_difference/Nsynapses + 4*(ant1.type != ant2.type);
 }
 
 bool same_species(neat_ant *a, neat_ant *b)
@@ -769,4 +784,9 @@ int neat_ant::get_id()
 int neat_ant::get_no_hidden_neurons()
 {
 	return hidden_neurons.size();
+}
+
+int neat_ant::get_mutability()
+{
+	return mutability;
 }

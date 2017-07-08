@@ -71,6 +71,7 @@ bool texture_wrapper::load_text(std::string text, SDL_Color colour, std::string 
 {
 	bool success = true;
 
+	this->free();
 	TTF_Font *font = TTF_OpenFont(font_path.c_str(), size);
 	SDL_Surface *message_as_surface = TTF_RenderText_Solid(font, text.c_str(), colour);
 	if (message_as_surface == NULL) {

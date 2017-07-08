@@ -69,6 +69,7 @@ class ant {
 		double get_stamina();
 		double get_angle();
 		bool is_alive();
+		ant_type get_type();
 
 	protected:
 		double speed,
@@ -91,7 +92,7 @@ class ant {
 		       ant *tesla_target;
 		       bar *bar_health, *bar_stamina;
 		       ant_type type;
-		       int x, y;
+		       double x, y;
 		       bool alive, arc_left;
 		       texture_wrapper sprite;
 		       texture_wrapper nip_texture;
