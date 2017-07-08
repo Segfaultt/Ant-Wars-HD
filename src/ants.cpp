@@ -35,6 +35,28 @@ ant::ant(ant_type type_, int starting_x, int starting_y)
 	}
 }
 
+ant::~ant()
+{
+	for (auto *i : holes)
+		delete i;
+	for (auto *i : grease)
+		delete i;
+	for (auto *i : child)
+		delete i;
+	if (tesla_bolt != NULL) {
+		delete tesla_bolt;
+		tesla_bolt = NULL;
+	}
+	if (bar_health != NULL) {
+		delete bar_health;
+		bar_health = NULL;
+	}
+	if (bar_stamina != NULL) {
+		delete bar_stamina;
+		bar_stamina = NULL;
+	}
+}
+
 void ant::set_other_ants(std::vector<ant *> other_ants_)
 {
 	other_ants = other_ants_;
@@ -140,7 +162,7 @@ void ant::render()
 		//check if hit
 		for (ant *i : other_ants) {
 			std::vector<int> p = {i->get_x() - x, y - i->get_y()};
-			
+
 			double lambda = p[0]*cos(angle * PI_OVER_180) + p[1]*sin(angle * PI_OVER_180);
 			if (lambda >= 0 && 2500 >= pow(p[0], 2) + pow(p[1], 2) - pow(lambda, 2)) {
 				i->damage(5);
@@ -395,7 +417,8 @@ void ant::damage(double damage)
 	}
 	if (damage > 0 | health - damage <= 100) {
 		health -= damage;
-		mass -= damage/150;
+		if (type != MATT)
+			mass -= damage/150;
 	}
 	if (health < 0) {
 		alive = false;
@@ -418,10 +441,10 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-			if (stamina > 55) {
+			if (stamina > 75) {
 				black_hole *hole = new black_hole(x, y, angle);
 				holes.push_back(hole);
-				stamina -= 55;
+				stamina -= 75;
 			}
 			break;
 
@@ -734,6 +757,12 @@ void ant::reset()
 	angular_momentum = 0;
 	tenticles_out = 0;
 	grease_effect = 1;
+	for (auto *i : grease)
+		delete i;
+	grease.clear();
+	for (auto *i : holes)
+		delete i;
+	holes.clear();
 	arc_turn = 0;
 	flip_timer = 0;
 	nip_out_timer = 0;

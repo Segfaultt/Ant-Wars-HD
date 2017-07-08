@@ -339,6 +339,7 @@ int main()
 				f_types << "YA_BOY LUCA CSS_BAD HIPSTER BOT MOONBOY ARC GREASY_BOY WEEB FIDGET_SPINNER ANTDO QUEEN" << std::endl;
 				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
+				delete first_ancestor;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_0) {
 				matches_to_do = 999999999;
 				SDL_SetWindowSize(window, 1, 1);
@@ -607,7 +608,9 @@ int main()
 					}
 				}
 				std::cout << population.size() << '\t' << new_population.size();
-				population.clear();//kill old ants
+				//kill old ants
+				for (neat_ant *i : population)
+					delete i;
 				population = new_population;
 				new_population.clear();
 				survivors.clear();
@@ -658,6 +661,8 @@ int main()
 				delete right_ant;
 				right_ant = NULL;
 			}
+			for (bot *i : bots)
+				delete i;
 			bots.clear();
 		} else if (ui_state == ONE_PLAYER_GAME) {//render game with one ant
 			right_ant->apply_physics();
@@ -725,6 +730,7 @@ int main()
 		SDL_RenderPresent(renderer);
 	}
 
+	//free memory
 	if (left_ant != NULL) {
 		delete left_ant;
 		left_ant = NULL;
@@ -741,7 +747,12 @@ int main()
 		delete gladiator2;
 		gladiator2 = NULL;
 	}
+	for (bot *i : bots)
+		delete i;
 	bots.clear();
+	for (neat_ant *i : population)
+		delete i;
+	population.clear();
 
 	single_player_scores.close();
 	close();

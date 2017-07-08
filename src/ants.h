@@ -37,6 +37,7 @@ enum ai_state {
 class ant {
 	public:
 		ant(ant_type type_, int starting_x, int starting_y);
+		~ant();
 		void set_other_ants(std::vector<ant *> other_ants_);
 		void add_other_ants(ant *other_ants_);
 		void remove_other_ants(ant *other_ants_);

@@ -150,6 +150,9 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 neat_ant::~neat_ant()
 {
 	close_display();
+	
+	for (auto *i : hidden_neurons)
+		delete i;
 }
 
 double angle_addition(double angle, double addition)
@@ -327,7 +330,7 @@ void neat_ant::close_display()
 
 void neat_ant::set_as_starter()
 {
-	mutability = 10;
+	mutability = 2;
 	for (int i = 0; i < 7; i++)
 		for (int j = 0; j < 13; j++)
 			output_layer[i].add_synapse(&input_neurons[j], 0);
@@ -388,6 +391,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		i->synapses.clear();
 		i->weights.clear();
 		i->innovation_numbers.clear();
+		i->enabled.clear();
 		i->computed = false;
 		i->value = 0.5;
 		i->bias = 0;
@@ -396,6 +400,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		daughter->output_layer[i].synapses.clear();
 		daughter->output_layer[i].weights.clear();
 		daughter->output_layer[i].innovation_numbers.clear();
+		daughter->output_layer[i].enabled.clear();
 		daughter->output_layer[i].value = 0.5;
 		daughter->output_layer[i].bias = 0;
 	}
@@ -454,7 +459,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	}
 
 	for (int i = 0; i < 7; i++) {
-
 		for (int n = 0; n < fitter_parent->output_layer[i].synapses.size(); n++) {
 			bool common_gene = false;
 			int target_innovation_number = fitter_parent->output_layer[i].innovation_numbers[n];
@@ -520,10 +524,6 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 					weighting = -10;
 			}
 
-			/*daughter->output_layer[i].synapses.push_back(target_neuron);
-			  daughter->output_layer[i].weights.push_back(weighting);
-			  daughter->output_layer[i].innovation_numbers.push_back(target_innovation_number);
-			  daughter->output_layer[i].enabled.push_back(is_enabled);*/
 			daughter->output_layer[i].add_synapse(target_neuron, weighting, target_innovation_number, is_enabled);
 		}
 	}
@@ -662,7 +662,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		}
 	}
 	srand(seed++);
-	if (rand()%(4*daughter_mutability) == 0) {
+	if (rand()%(10*daughter_mutability) == 0) {//needs time to optimise already existing biases and mutations
 
 		//pick synapse to split
 		srand(seed++);
