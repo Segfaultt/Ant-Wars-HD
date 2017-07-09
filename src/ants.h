@@ -22,6 +22,7 @@ enum ant_type {
 	WEEB,
 	MATT,
 	ANTDO,
+	SQUID,
 	QUEEN,
 	NO_OF_ANT_TYPE
 };
@@ -99,7 +100,7 @@ class ant {
 		       texture_wrapper nip_texture;
 		       texture_wrapper guitar_texture;
 		       texture_wrapper tenticle_texture;
-		       int nip_out_timer, laser_on, guitar, tenticles_out, flip_timer, arc_turn;
+		       int nip_out_timer, laser_on, guitar, tenticles_out, squid_tenticles_out, flip_timer, arc_turn;
 		       ai_state state, past_state;
 		       int inteligence,
 			   right_bias;

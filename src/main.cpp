@@ -187,6 +187,7 @@ int main()
 					weeb,
 					matt,
 					antdo,
+					squid,
 					queen;
 			int x,y;
 
@@ -204,6 +205,7 @@ int main()
 				matt.load_text("Fidget spinner", {0xb0, 0x90, 0x90}, "res/default/Cousine-Regular.ttf", 30);
 				antdo.load_text("antdo", {0xff, 0xff, 0x00}, "res/default/Cousine-Regular.ttf", 30);
 				queen.load_text("The ant queen", {0xa0, 0x1f, 0xb0}, "res/default/Cousine-Regular.ttf", 30);
+				squid.load_text("squid ant", {0x80, 0x8f, 0xf0}, "res/default/Cousine-Regular.ttf", 30);
 				x = x_;
 				y = y_;
 			}
@@ -251,6 +253,9 @@ int main()
 					case QUEEN:
 						queen.render(x - queen.get_width()/2, y);
 						break;
+
+					case SQUID:
+						squid.render(x - squid.get_width()/2, y);
 				}
 			}
 	};
@@ -336,7 +341,7 @@ int main()
 				f_average_complexity.open("log/" + std::to_string(raw_time) + "_mean_complexity.log", std::ios_base::trunc);
 				f_average_mutability.open("log/" + std::to_string(raw_time) + "_mean_mutability.log", std::ios_base::trunc);
 				f_types.open("log/" + std::to_string(raw_time) + "_types.log", std::ios_base::trunc);
-				f_types << "YA_BOY LUCA CSS_BAD HIPSTER BOT MOONBOY ARC GREASY_BOY WEEB FIDGET_SPINNER ANTDO QUEEN" << std::endl;
+				f_types << "YA-BOY LUCA CSS-BAD HIPSTER BOT MOONBOY ARC GREASY-BOY WEEB FIDGET-SPINNER SQUID ANTDO QUEEN" << std::endl;
 				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 				delete first_ancestor;
@@ -411,6 +416,10 @@ int main()
 							right_ant_type = QUEEN;
 							break;
 
+						case QUEEN:
+							right_ant_type = SQUID;
+							break;
+
 						default:
 							right_ant_type = YA_BOY;
 							break;
@@ -458,6 +467,10 @@ int main()
 
 						case ANTDO:
 							left_ant_type = QUEEN;
+							break;
+
+						case QUEEN:
+							left_ant_type = SQUID;
 							break;
 
 						default:

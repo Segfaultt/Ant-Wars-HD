@@ -209,7 +209,37 @@ void ant::render()
 
 		tenticles_out--;
 	}
+	if (type == SQUID && squid_tenticles_out > 0) {
+		tenticle_texture.render(-80 * cos(angle * PI_OVER_180) + x, 80 * sin(angle * PI_OVER_180) + y, bearing + 180);
+		double angle_to_target, angle_difference, y_component, x_component;
+		for (ant *i : other_ants) {
+			x_component = x - i->get_x();
+			y_component = -1 * (y - i->get_y());
+			angle_to_target = atan(y_component/x_component) * ONE_EIGHTY_OVER_PI;	
+			if (x_component < 0)
+				angle_to_target += 180;
+			if (x_component > 0 && y_component < 0)
+				angle_to_target += 360;
 
+			angle_difference = angle - angle_to_target;
+			if (angle_difference > 180)
+				angle_difference = angle_difference - 360;
+
+			if (abs(angle_difference) < 40 && PYTHAG(x_component, y_component) < 155) {
+				i->damage(10);
+
+				//push targets
+				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
+				double x_component_unit_vector = (x - i->get_x()) / magnitude;
+				double y_component_unit_vector = (y - i->get_y()) / magnitude;
+				const double push_force = -7;
+				i->apply_force(push_force * x_component_unit_vector, push_force * y_component_unit_vector);
+			}
+		}
+		apply_force(7 * cos(angle * PI_OVER_180), -7 * sin(angle * PI_OVER_180));
+	}
+	if (squid_tenticles_out > -20)
+		squid_tenticles_out--;
 	sprite.render(x, y, bearing);
 
 	if (type == HIPSTER) {
@@ -417,7 +447,7 @@ void ant::damage(double damage)
 	}
 	if (damage > 0 | health - damage <= 100) {
 		health -= damage;
-		if (type != MATT)
+		if (type != MATT && type != SQUID)
 			mass -= damage/150;
 	}
 	if (health < 0) {
@@ -512,6 +542,15 @@ void ant::ability()
 					i->add_other_ants(child[child.size() - 1]);
 				}
 			}
+			break;
+
+		case SQUID:
+			if (stamina >= 15 && squid_tenticles_out <= -10) {
+				stamina -= 15;
+				squid_tenticles_out = TICKS_PER_FRAME/6;
+			}
+			break;
+
 	}
 }
 
@@ -781,6 +820,7 @@ void ant::reset()
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
 	tesla_bolt = NULL;
 	tesla_target = NULL;
+	squid_tenticles_out = 0;
 
 	if (bar_health != NULL) {
 		delete bar_health;
@@ -843,12 +883,21 @@ void ant::reset()
 			speed *= 1.2;
 			turn_speed *= 1.5;
 			break;
+
 		case MATT:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/fidget_spinner.png");
 			speed *= 1.4;
 			break;
+
 		case ANTDO:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/antdo.png");
+			break;
+
+		case SQUID:
+			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/squid.png");
+			tenticle_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/tenticles.png");
+			speed = 0;
+			stamina_regen *= 3;
 			break;
 
 		case QUEEN:
