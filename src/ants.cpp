@@ -67,8 +67,8 @@ void ant::move(direction dir)
 	switch (dir) {
 		case FORWARDS:
 			if (guitar > 0) {
-				x += grease_effect * speed * 0.5 * cos(angle * PI_OVER_180);
-				y -= grease_effect * speed * 0.5 * sin(angle * PI_OVER_180);
+				x += grease_effect * speed * 0.3 * cos(angle * PI_OVER_180);
+				y -= grease_effect * speed * 0.3 * sin(angle * PI_OVER_180);
 			} else {
 				x += grease_effect * speed * cos(angle * PI_OVER_180);
 				y -= grease_effect * speed * sin(angle * PI_OVER_180);
@@ -77,11 +77,11 @@ void ant::move(direction dir)
 
 		case BACKWARDS:
 			if (guitar > 0) {
-				x -= grease_effect * speed * 0.5 * cos(angle * PI_OVER_180);
-				y += grease_effect * speed * 0.5 * sin(angle * PI_OVER_180);
+				x -= grease_effect * speed * 0.3 * cos(angle * PI_OVER_180) * 0.8;
+				y += grease_effect * speed * 0.3 * sin(angle * PI_OVER_180) * 0.8;
 			} else {
-				x -= grease_effect * speed * cos(angle * PI_OVER_180);
-				y += grease_effect * speed * sin(angle * PI_OVER_180);
+				x -= grease_effect * speed * cos(angle * PI_OVER_180) * 0.8;
+				y += grease_effect * speed * sin(angle * PI_OVER_180) * 0.8;
 			}
 			break;
 
@@ -408,7 +408,7 @@ void ant::apply_physics()
 				in_grease = true;
 		if (in_grease) {
 			grease_effect = 1.5;
-			damage(-0.4);
+			damage(-0.2);
 		} else {
 			grease_effect = 1;
 		}

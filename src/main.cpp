@@ -353,16 +353,19 @@ int main()
 				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_8) {
 				matches_to_do = 5000;
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_7) {
 				matches_to_do = 1000;
-				SDL_SetWindowSize(window, 2, 2);
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_6) {
 				matches_to_do = 500;
-				SDL_SetWindowSize(window, 2, 2);
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_5) {
 				matches_to_do = 100;
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_4) {
 				matches_to_do = 50;
+				SDL_SetWindowSize(window, 1, 1);
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_3) {
 				//matches_to_do = 10;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_2) {
@@ -639,8 +642,10 @@ int main()
 				srand(seed++);
 				gladiator2 = population[rand()%population.size()];
 			} while (gladiator2 == gladiator1);
-			gladiator1->set_position(50, SCREEN_HEIGHT/2);
-			gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
+			srand(seed++);
+			gladiator1->set_position(50, (rand()%(SCREEN_HEIGHT-10))+5);
+			srand(seed++);
+			gladiator2->set_position(SCREEN_WIDTH - 150, (rand()%(SCREEN_HEIGHT-10))+5);
 			gladiator1->set_other_ants({gladiator2});
 			gladiator2->set_other_ants({gladiator1});
 			gladiator1->flipped = true;
