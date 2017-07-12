@@ -9,6 +9,8 @@ struct neuron {
 	neuron();
 	double get_value();
 	void compute_value();
+	double get_value(std::vector<neuron *> parent_chain);
+	void compute_value(std::vector<neuron *> parent_chain);
 	void add_synapse(neuron *other_neuron, double weight);
 	void add_synapse(neuron *other_neuron, double weight, int innovation_number_, bool enabled_);
 	void set_id();

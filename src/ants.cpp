@@ -144,7 +144,7 @@ void ant::render()
 		tesla_bolt->tick(tesla_target->get_x() + 50, tesla_target->get_y() + 50);
 		if (!tesla_bolt->is_alive()) {
 			//damage
-			tesla_target->damage(15);
+			tesla_target->damage(19);
 
 			//clean up
 			delete tesla_bolt;
@@ -592,8 +592,8 @@ void ant::tesla()
 		}
 	}
 
-	if (stamina >= shortest_distance/cost_coefficient + 20 && tesla_bolt == NULL) {
-		stamina -= shortest_distance/cost_coefficient + 20;
+	if (stamina >= shortest_distance/cost_coefficient + 10 && tesla_bolt == NULL) {
+		stamina -= shortest_distance/cost_coefficient + 10;
 		delete tesla_bolt;
 		tesla_bolt = new electric_bolt(x + 50, y + 50);
 		//apply attraction
@@ -848,7 +848,7 @@ void ant::reset()
 			guitar_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/guitar.png");
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/hipster.png");
 			speed *= 1.2;
-			mass *= 0.6;
+			mass *= 0.5;
 			break;
 		case BOT:
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/bot.png");
@@ -874,7 +874,7 @@ void ant::reset()
 			sprite.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/greasy_boy.png");
 			speed *= 0.7;
 			nip_damage *= 0.8;
-			mass *= 0.8;
+			mass *= 0.6;
 			break;
 
 		case WEEB:

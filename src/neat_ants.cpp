@@ -8,6 +8,7 @@
 neuron::neuron()
 {
 	bias = 0;
+	value = 0.5;
 }
 
 double neuron::get_value()
@@ -17,7 +18,29 @@ double neuron::get_value()
 	return value;
 }
 
+double neuron::get_value(std::vector<neuron *> parent_chain)
+{
+	if (!computed && !binary_search(parent_chain.begin(), parent_chain.end(), this) && parent_chain.size() < 100) {
+		parent_chain.push_back(this);
+		compute_value(parent_chain);
+	}
+	return value;
+}
+
 //apply sigmoidal activation function
+void neuron::compute_value(std::vector<neuron *> parent_chain)
+{
+	double z = bias;
+
+	for (int i = 0; i < synapses.size(); i++) {
+		if (enabled[i])
+			z += synapses[i]->get_value(parent_chain) * weights[i];
+	}
+
+	value = (1/(1 + exp(-z)));
+	computed = true;
+}
+
 void neuron::compute_value()
 {
 	double z = bias;
@@ -35,15 +58,15 @@ void neuron::add_synapse(neuron *other_neuron, double weight)//add an entirely n
 {	//stop infinite recusion and duplicate synapses
 	bool is_valid_synapse = true;
 
-	neuron *self = this;
-	if (other_neuron == self)
-		is_valid_synapse = false;
-	for (neuron *i : other_neuron->synapses)
-		if (i->leads_to(self))
-			is_valid_synapse = false;
-	for (neuron *i : synapses)
-		if (i == other_neuron)
-			is_valid_synapse = false;
+	/*neuron *self = this;
+	  if (other_neuron == self)
+	  is_valid_synapse = false;
+	  for (neuron *i : other_neuron->synapses)
+	  if (i->leads_to(self))
+	  is_valid_synapse = false;
+	  for (neuron *i : synapses)
+	  if (i == other_neuron)
+	  is_valid_synapse = false;*/
 
 	if (is_valid_synapse) {
 		synapses.push_back(other_neuron);
@@ -57,15 +80,15 @@ void neuron::add_synapse(neuron *other_neuron, double weight, int innovation_num
 {	//stop infinite recusion and duplicate synapses
 	bool is_valid_synapse = true;
 
-	neuron *self = this;
-	if (other_neuron == self)
-		is_valid_synapse = false;
-	for (neuron *i : other_neuron->synapses)
-		if (i->leads_to(self))
-			is_valid_synapse = false;
-	for (neuron *i : synapses)
-		if (i == other_neuron)
-			is_valid_synapse = false;
+	/*neuron *self = this;
+	  if (other_neuron == self)
+	  is_valid_synapse = false;
+	  for (neuron *i : other_neuron->synapses)
+	  if (i->leads_to(self))
+	  is_valid_synapse = false;
+	  for (neuron *i : synapses)
+	  if (i == other_neuron)
+	  is_valid_synapse = false;*/
 
 	if (is_valid_synapse) {
 		synapses.push_back(other_neuron);
@@ -150,7 +173,7 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 neat_ant::~neat_ant()
 {
 	close_display();
-	
+
 	for (auto *i : hidden_neurons)
 		delete i;
 }
@@ -194,7 +217,7 @@ void neat_ant::tick()
 	input_neurons[5].value = target->get_health()/100;
 	input_neurons[6].value = stamina/100;
 	input_neurons[7].value = target->get_stamina()/100;
-	input_neurons[8].value = PYTHAG(x_component,y_component)/100;
+	input_neurons[8].value = PYTHAG(x_component,y_component)/1000;
 	input_neurons[9].value = velocity[0]/100;
 	input_neurons[10].value = velocity[1]/100;
 	input_neurons[11].value = angular_momentum/100;
@@ -212,19 +235,19 @@ void neat_ant::tick()
 	}
 
 	//get and apply outputs
-	if (output_layer[0].get_value() > 0.5)
+	if (output_layer[0].get_value({}) > 0.5)
 		move(LEFT);
-	if (output_layer[1].get_value() > 0.5)
+	if (output_layer[1].get_value({}) > 0.5)
 		move(RIGHT);
-	if (output_layer[2].get_value() > 0.5)
+	if (output_layer[2].get_value({}) > 0.5)
 		nip();
-	if (output_layer[3].get_value() > 0.5)
+	if (output_layer[3].get_value({}) > 0.5)
 		move(FORWARDS);
-	if (output_layer[4].get_value() > 0.5)
+	if (output_layer[4].get_value({}) > 0.5)
 		move(BACKWARDS);
-	if (output_layer[5].get_value() > 0.5)
+	if (output_layer[5].get_value({}) > 0.5)
 		flip();
-	if (output_layer[6].get_value() > 0.5)
+	if (output_layer[6].get_value({}) > 0.5)
 		ability();
 
 	//brain display
@@ -347,6 +370,7 @@ void neat_ant::set_as_starter()
 
 neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messes SDL up
 {
+	const int bias_limit = 4;
 	int daughter_mutability = (mother.mutability + father.mutability)/ 2;
 	srand(seed++);
 	daughter_mutability += rand()%3 - 1;
@@ -354,8 +378,8 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		daughter_mutability = 1;
 
 	//pick daughter type
-	ant_type daughter_type;
-	srand(seed++);
+	ant_type daughter_type = ARC;
+	/*srand(seed++);
 	if (rand()%(4 * daughter_mutability) == 0) {
 		srand(seed++);
 		daughter_type = ant_type(rand()%(NO_OF_ANT_TYPE-1));
@@ -365,7 +389,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			daughter_type = father.type;
 		else
 			daughter_type = mother.type;
-	}
+	}*/
 	neat_ant *daughter = new neat_ant(daughter_type, 0, 0);
 	daughter->mutability = daughter_mutability;
 
@@ -429,10 +453,14 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			srand(seed++);
 			i->bias += ((double)(rand()%6))/10.0 - 0.3;
 
-			if (i->bias > 10)
-				i->bias = 10;
-			else if (i->bias < -10)
-				i->bias = -10;
+			if (i->bias > bias_limit)
+				i->bias = bias_limit;
+			else if (i->bias < -bias_limit)
+				i->bias = -bias_limit;
+		}
+		srand(seed++);
+		if (rand()%(8 * daughter_mutability) == 0) {//flip bias to stop stagnation
+			i->bias *= -1;
 		}
 
 	}
@@ -452,8 +480,10 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		if (rand()%daughter_mutability == 0) {//mutate bias
 			srand(seed++);
 			daughter->output_layer[i].bias += ((double)(rand()%10))/10.0 - 0.5;
-			if (daughter->output_layer[i].bias > 10) daughter->output_layer[i].bias = 10; else if (daughter->output_layer[i].bias < -10)
-				daughter->output_layer[i].bias = -10;
+			if (daughter->output_layer[i].bias > bias_limit)
+				daughter->output_layer[i].bias = bias_limit;
+			else if (daughter->output_layer[i].bias < -bias_limit)
+				daughter->output_layer[i].bias = -bias_limit;
 
 		}
 	}
@@ -518,10 +548,10 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 				srand(seed++);
 				weighting += ((double)(rand()%10))/10.0 - 0.5;
 
-				if (weighting > 10)
-					weighting = 10;
-				else if (weighting < -10)
-					weighting = -10;
+				if (weighting > bias_limit)
+					weighting = bias_limit;
+				else if (weighting < -bias_limit)
+					weighting = -bias_limit;
 			}
 
 			daughter->output_layer[i].add_synapse(target_neuron, weighting, target_innovation_number, is_enabled);
@@ -590,10 +620,10 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 				srand(seed++);
 				weighting += ((double)(rand()%10))/10.0 - 0.5;
 
-				if (weighting > 10)
-					weighting = 10;
-				else if (weighting < -10)
-					weighting = -10;
+				if (weighting > bias_limit)
+					weighting = bias_limit;
+				else if (weighting < -bias_limit)
+					weighting = -bias_limit;
 			}
 
 			/*daughter->hidden_neurons[i]->synapses.push_back(target_neuron);
@@ -662,7 +692,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		}
 	}
 	srand(seed++);
-	if (rand()%(10*daughter_mutability) == 0) {//needs time to optimise already existing biases and mutations
+	if (rand()%(10*daughter_mutability) == 0 && genes.size() > 0) {//needs time to optimise already existing biases and mutations
 
 		//pick synapse to split
 		srand(seed++);
@@ -687,9 +717,9 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 	double weight_difference = 0;//weights and biases
 
 	//maximum total neurons and synapses
-	int N = std::max(ant1.no_of_synapses + ant1.hidden_neurons.size(), ant2.no_of_synapses + ant2.hidden_neurons.size());
+	int N = std::max(ant1.no_of_synapses + ant1.hidden_neurons.size(), ant2.no_of_synapses + ant2.hidden_neurons.size()) + 1;
 	//maximum total of synapses
-	int Nsynapses = std::max(ant1.no_of_synapses, ant2.no_of_synapses);
+	int Nsynapses = std::max(ant1.no_of_synapses, ant2.no_of_synapses) + 1;
 
 	//sum output bias difference
 	for (int i = 0; i < 7; i++) {

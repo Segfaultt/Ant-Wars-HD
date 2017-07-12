@@ -333,7 +333,7 @@ int main()
 				generation = 1;
 				match_of_generation = -1;
 				population.clear();
-				neat_ant *first_ancestor = new neat_ant(WEEB, 0, 0);
+				neat_ant *first_ancestor = new neat_ant(ARC, 0, 0);
 				first_ancestor->set_as_starter();
 				time_t raw_time;
 				time(&raw_time);
@@ -625,11 +625,11 @@ int main()
 				}
 				std::cout << population.size() << '\t' << new_population.size();
 				//kill old ants
+				survivors.clear();
 				for (neat_ant *i : population)
 					delete i;
 				population = new_population;
 				new_population.clear();
-				survivors.clear();
 			}
 
 			generation_counter.load_text("Generation: " + std::to_string(generation) + "-" + std::to_string(match_of_generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
@@ -642,10 +642,16 @@ int main()
 				srand(seed++);
 				gladiator2 = population[rand()%population.size()];
 			} while (gladiator2 == gladiator1);
-			srand(seed++);
-			gladiator1->set_position(50, (rand()%(SCREEN_HEIGHT-10))+5);
-			srand(seed++);
-			gladiator2->set_position(SCREEN_WIDTH - 150, (rand()%(SCREEN_HEIGHT-10))+5);
+
+			if (generation > 50) {//randomize y-position
+				srand(seed++);
+				gladiator1->set_position(50, (rand()%(SCREEN_HEIGHT-10))-45);
+				srand(seed++);
+				gladiator2->set_position(SCREEN_WIDTH - 150, (rand()%(SCREEN_HEIGHT-10))-45);
+			} else {
+				gladiator1->set_position(50, SCREEN_HEIGHT/2);
+				gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
+			}
 			gladiator1->set_other_ants({gladiator2});
 			gladiator2->set_other_ants({gladiator1});
 			gladiator1->flipped = true;
