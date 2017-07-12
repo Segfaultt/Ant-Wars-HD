@@ -643,7 +643,7 @@ int main()
 				gladiator2 = population[rand()%population.size()];
 			} while (gladiator2 == gladiator1);
 
-			if (generation > 50) {//randomize y-position
+			if (generation > 200) {//randomize y-position
 				srand(seed++);
 				gladiator1->set_position(50, (rand()%(SCREEN_HEIGHT-10))-45);
 				srand(seed++);

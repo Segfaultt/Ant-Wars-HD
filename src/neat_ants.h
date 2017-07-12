@@ -55,7 +55,7 @@ class neat_ant : public ant {
 		friend double compatibility_distance(neat_ant &ant1, neat_ant &ant2);
 
 	private:
-		neuron output_layer[7];
+		neuron output_layer[5];
 		std::vector<neuron *> hidden_neurons;
 		neuron input_neurons[13];
 		/*
@@ -75,13 +75,11 @@ class neat_ant : public ant {
 		 * 12	|	opponents angle
 		 *
 		 * Output neurons index contents:
-		 * 0	|	turn left
-		 * 1	|	turn right
+		 * 0	|	turn (high: right, low: left)
+		 * 1	|	move (high: forwards, low: backwards)
 		 * 2	|	nip
-		 * 3	|	move forwards
-		 * 4	|	move backwards
-		 * 5	|	flip
-		 * 6	|	ability
+		 * 3	|	flip
+		 * 4	|	ability
 		 */
 		double damage_given, damage_taken, final_distance_sum;
 		int fights, no_of_synapses, id;
