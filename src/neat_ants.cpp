@@ -147,6 +147,7 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 {
 	damage_given = 50;
 	damage_taken = 50;//no undefined or unreasonably high fitnesses from low damage_taken
+	tick_count = 0;
 	window_open = false;
 	brain_window = NULL;
 	brain_renderer = NULL;
@@ -189,6 +190,7 @@ double angle_addition(double angle, double addition)
 
 void neat_ant::tick()
 {
+	tick_count++;
 	apply_physics();
 	render();
 	check_edge();
@@ -235,13 +237,13 @@ void neat_ant::tick()
 	}
 
 	//get and apply outputs
-	if (output_layer[0].get_value({}) > 0.8)
-		move(LEFT);
-	if (output_layer[0].get_value({}) < 0.2)
+	if (tick_count%(int)(round(1/pow(output_layer[0].get_value({}), 3))) == 0)
 		move(RIGHT);
-	if (output_layer[1].get_value({}) > 0.8)
+	if (tick_count%(int)(round(1/pow(1 - output_layer[0].get_value({}), 3))) == 0)
+		move(LEFT);
+	if (tick_count%(int)(round(1/pow(output_layer[1].get_value({}), 3))) == 0)
 		move(FORWARDS);
-	if (output_layer[1].get_value({}) < 0.2)
+	if (tick_count%(int)(round(1/pow(1 - output_layer[1].get_value({}), 3))) == 0)
 		move(BACKWARDS);
 	if (output_layer[2].get_value({}) > 0.5)
 		nip();
@@ -275,7 +277,6 @@ void neat_ant::tick()
 				bias_lum = 0xff;
 			if (bias_lum < 0)
 				bias_lum = 0;
-
 			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS + 1 + round(abs(i->bias)), bias_lum, 0, (1 - bias_lum), 0xff);
 			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, lum, lum, lum, 0xff);
 		}
@@ -546,7 +547,10 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			srand(seed++);
 			if (rand()%daughter_mutability == 0) {
 				srand(seed++);
-				weighting += ((double)(rand()%10))/10.0 - 0.5;
+				weighting += ((double)(rand()%10))/10.0;
+				srand(seed++);
+				if (rand()%2 == 0)
+					weighting *= -1;
 
 				if (weighting > bias_limit)
 					weighting = bias_limit;
@@ -618,7 +622,11 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 			srand(seed++);
 			if (rand()%daughter_mutability == 0) {
 				srand(seed++);
-				weighting += ((double)(rand()%10))/10.0 - 0.5;
+				weighting += ((double)(rand()%10))/10.0;
+				srand(seed++);
+				if (rand()%2 == 0)
+					weighting *= -1;
+
 
 				if (weighting > bias_limit)
 					weighting = bias_limit;
@@ -692,7 +700,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		}
 	}
 	srand(seed++);
-	if (rand()%(10*daughter_mutability) == 0 && id > 5000) {//needs time to optimise already existing biases and mutations
+	if (rand()%(10*daughter_mutability) == 0 && daughter->id > 5000) {//needs time to optimise already existing biases and mutations
 
 		//pick synapse to split
 		srand(seed++);

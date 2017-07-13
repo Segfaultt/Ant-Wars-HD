@@ -87,6 +87,7 @@ class neat_ant : public ant {
 		bool window_open,
 		     fitness_known;
 		double adjusted_fitness;
+		int tick_count;
 		SDL_Window *brain_window;
 		SDL_Renderer *brain_renderer;
 		texture_wrapper name;
