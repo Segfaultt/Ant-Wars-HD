@@ -53,7 +53,7 @@ class ant {
 		void apply_physics();
 		void render();
 		void ai(ant *target);
-		void damage(double damage);
+		double damage(double damage);
 		void check_edge();
 		void flip();
 

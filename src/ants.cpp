@@ -435,7 +435,7 @@ double ant::get_mass()
 	return mass;
 }
 
-void ant::damage(double damage)
+double ant::damage(double damage)
 {
 	if (damage > 0) {
 		if (type == YA_BOY)
@@ -454,6 +454,8 @@ void ant::damage(double damage)
 	if (health < 0) {
 		alive = false;
 	}
+
+	return damage;
 }
 
 bool ant::is_alive()
@@ -464,8 +466,7 @@ bool ant::is_alive()
 void ant::check_edge()
 {
 	if (x + 50 > SCREEN_WIDTH | x + 50< 0 | y + 50 > SCREEN_HEIGHT | y + 50 < 0) {
-		damage(0.5);
-		non_edge_damage -= 0.5;
+		non_edge_damage -= damage(0.5);
 	}
 }
 
