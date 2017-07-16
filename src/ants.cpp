@@ -447,6 +447,7 @@ void ant::damage(double damage)
 	}
 	if (damage > 0 | health - damage <= 100) {
 		health -= damage;
+		non_edge_damage += damage;
 		if (type != MATT && type != SQUID)
 			mass -= damage/150;
 	}
@@ -464,6 +465,7 @@ void ant::check_edge()
 {
 	if (x + 50 > SCREEN_WIDTH | x + 50< 0 | y + 50 > SCREEN_HEIGHT | y + 50 < 0) {
 		damage(0.5);
+		non_edge_damage -= 0.5;
 	}
 }
 
@@ -815,6 +817,7 @@ void ant::reset()
 	speed = 8;
 	turn_speed = 5;
 	health = 100;
+	non_edge_damage = 0;
 	stamina = 0;
 	stamina_regen = 0.22;
 	nip_texture.load_texture((std::string)"res/" + (std::string)RES_PACK + (std::string)"/nip.png");
@@ -910,4 +913,9 @@ void ant::reset()
 ant_type ant::get_type()
 {
 	return type;
+}
+
+double ant::get_damaged()
+{
+	return non_edge_damage;
 }

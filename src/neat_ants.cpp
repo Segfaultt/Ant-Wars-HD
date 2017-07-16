@@ -158,14 +158,14 @@ neat_ant::neat_ant(ant_type type_, int starting_x, int starting_y) : ant(type_, 
 	final_distance_sum = 0;
 
 	//set all nodes to default
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		output_layer[i].id = i;
-		output_layer[i].x = i * ANT_BRAIN_WINDOW_WIDTH/5 + ANT_BRAIN_WINDOW_WIDTH/14;
+		output_layer[i].x = i * ANT_BRAIN_WINDOW_WIDTH/7 + ANT_BRAIN_WINDOW_WIDTH/14;
 		output_layer[i].y = NEURON_RADIUS + 5;
 	}
 	for (int i = 0; i < 13; i++) {
 		input_neurons[i].computed = true;
-		input_neurons[i].id = i + 5;
+		input_neurons[i].id = i + 7;
 		input_neurons[i].x = i * ANT_BRAIN_WINDOW_WIDTH/13 + ANT_BRAIN_WINDOW_WIDTH/26;
 		input_neurons[i].y = ANT_BRAIN_WINDOW_HEIGHT - NEURON_RADIUS - 5;
 	}
@@ -197,7 +197,7 @@ void neat_ant::tick()
 
 	for (neuron *i : hidden_neurons)
 		i->computed = false;
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		output_layer[i].computed = false;
 	}
 
@@ -237,7 +237,7 @@ void neat_ant::tick()
 	}
 
 	//get and apply outputs
-	if (tick_count%(int)(round(1/pow(output_layer[0].get_value({}), 3))) == 0)
+	/*if (tick_count%(int)(round(1/pow(output_layer[0].get_value({}), 3))) == 0)
 		move(RIGHT);
 	if (tick_count%(int)(round(1/pow(1 - output_layer[0].get_value({}), 3))) == 0)
 		move(LEFT);
@@ -245,11 +245,25 @@ void neat_ant::tick()
 		move(FORWARDS);
 	if (tick_count%(int)(round(1/pow(1 - output_layer[1].get_value({}), 3))) == 0)
 		move(BACKWARDS);
-	if (output_layer[2].get_value({}) > 0.5)
+	if (output_layer[2].get_value({}) > 0.7)
 		nip();
 	if (output_layer[3].get_value({}) > 0.5)
 		flip();
 	if (output_layer[4].get_value({}) > 0.5)
+		ability();*/
+	if (output_layer[0].get_value({}) > 0.8)
+		move(RIGHT);
+	if (output_layer[1].get_value({}) > 0.8)
+		move(LEFT);
+	if (output_layer[2].get_value({}) > 0.8)
+		move(FORWARDS);
+	if (output_layer[3].get_value({}) > 0.8)
+		move(BACKWARDS);
+	if (output_layer[4].get_value({}) > 0.8)
+		nip();
+	if (output_layer[5].get_value({}) > 0.8)
+		flip();
+	if (output_layer[6].get_value({}) > 0.8)
 		ability();
 
 	//brain display
@@ -281,7 +295,7 @@ void neat_ant::tick()
 			filledCircleRGBA(brain_renderer, i->x, i->y, NEURON_RADIUS, lum, lum, lum, 0xff);
 		}
 
-		for (int i = 0; i < 5; i++) {//output nodes
+		for (int i = 0; i < 7; i++) {//output nodes
 			int lum = output_layer[i].get_value() * 0xff;
 			if (lum > 0xff)
 				lum = 0xff;
@@ -421,7 +435,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		i->value = 0.5;
 		i->bias = 0;
 	}
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		daughter->output_layer[i].synapses.clear();
 		daughter->output_layer[i].weights.clear();
 		daughter->output_layer[i].innovation_numbers.clear();
@@ -467,7 +481,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 	}
 
 	//cross over output neuron biases
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		//pick gene owner
 		neat_ant *gene_owner = NULL;
 		srand(seed++);
@@ -489,7 +503,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		}
 	}
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		for (int n = 0; n < fitter_parent->output_layer[i].synapses.size(); n++) {
 			bool common_gene = false;
 			int target_innovation_number = fitter_parent->output_layer[i].innovation_numbers[n];
@@ -510,7 +524,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 					}
 				}
 			} else {
-				target_neuron = &daughter->input_neurons[target_id - 5];
+				target_neuron = &daughter->input_neurons[target_id - 7];
 			}
 
 			//is it disabled
@@ -585,7 +599,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 					}
 				}
 			} else {
-				target_neuron = &daughter->input_neurons[target_id - 5];
+				target_neuron = &daughter->input_neurons[target_id - 7];
 			}
 
 			//get weight
@@ -650,13 +664,13 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 		neuron *origin = NULL,
 		       *end = NULL;
 		srand(seed++);
-		origin_index = rand()%(5 + daughter->hidden_neurons.size());
+		origin_index = rand()%(7 + daughter->hidden_neurons.size());
 		end_index = rand()%(13 + daughter->hidden_neurons.size());
 
-		if (origin_index < 5)
+		if (origin_index < 7)
 			origin = &daughter->output_layer[origin_index];
 		else
-			origin = daughter->hidden_neurons[origin_index - 5];
+			origin = daughter->hidden_neurons[origin_index - 7];
 		if (end_index < 13)
 			end = &daughter->input_neurons[end_index];
 		else
@@ -675,7 +689,7 @@ neat_ant& cross_over(neat_ant &mother, neat_ant &father)//passing by value messe
 
 	//collect synapses
 	std::vector<gene> genes;
-	for (int i = 0; i < 5; i++) {//output neurons
+	for (int i = 0; i < 7; i++) {//output neurons
 		gene transfer;
 		transfer.origin = &daughter->output_layer[i];
 		for (int j = 0; j < daughter->output_layer[i].synapses.size(); j++) {
@@ -730,12 +744,12 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 	int Nsynapses = std::max(ant1.no_of_synapses, ant2.no_of_synapses) + 1;
 
 	//sum output bias difference
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		weight_difference += abs(ant1.output_layer[i].bias - ant2.output_layer[i].bias);
 	}
 
 	//sum output synapse weight
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 7; i++) {
 		double sum1 = 0,
 		       sum2 = 0;
 		for (int k = 0; k < ant1.output_layer[i].synapses.size(); k++) {
@@ -785,7 +799,7 @@ double compatibility_distance(neat_ant &ant1, neat_ant &ant2)
 
 bool same_species(neat_ant *a, neat_ant *b)
 {
-	const double threshold = 5;
+	const double threshold = 3;
 	return compatibility_distance(*a, *b) < threshold;
 }
 

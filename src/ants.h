@@ -68,6 +68,7 @@ class ant {
 		int get_y();
 		double get_mass();
 		double get_health();
+		double get_damaged();
 		double get_stamina();
 		double get_angle();
 		bool is_alive();
@@ -77,6 +78,7 @@ class ant {
 		double speed,
 		       turn_speed,
 		       health,
+		       non_edge_damage,
 		       stamina,
 		       stamina_regen,
 		       mass,

@@ -643,11 +643,11 @@ int main()
 				gladiator2 = population[rand()%population.size()];
 			} while (gladiator2 == gladiator1);
 
-			if (generation > 200) {//randomize y-position
+			if (generation > 500) {//randomize y-position
 				srand(seed++);
-				gladiator1->set_position(50, (rand()%(SCREEN_HEIGHT-10))-45);
+				gladiator1->set_position(50, (rand()%(SCREEN_HEIGHT-200))+50);
 				srand(seed++);
-				gladiator2->set_position(SCREEN_WIDTH - 150, (rand()%(SCREEN_HEIGHT-10))-45);
+				gladiator2->set_position(SCREEN_WIDTH - 150, (rand()%(SCREEN_HEIGHT-10))+50);
 			} else {
 				gladiator1->set_position(50, SCREEN_HEIGHT/2);
 				gladiator2->set_position(SCREEN_WIDTH - 150, SCREEN_HEIGHT/2);
@@ -719,8 +719,8 @@ int main()
 			generation_counter.render((SCREEN_WIDTH - generation_counter.get_width())/2, 50);
 
 			if (ticks_left-- <= 0 || !(gladiator1->is_alive() && gladiator2->is_alive())) {
-				gladiator1->add_result(100 - gladiator2->get_health(), 100 - gladiator1->get_health(), PYTHAG(gladiator1->get_x() - gladiator2->get_x(), gladiator1->get_y() - gladiator2->get_y()));
-				gladiator2->add_result(100 - gladiator1->get_health(), 100 - gladiator2->get_health(), PYTHAG(gladiator1->get_x() - gladiator2->get_x(), gladiator1->get_y() - gladiator2->get_y()));
+				gladiator1->add_result(gladiator2->get_damaged(), 100 - gladiator1->get_health(), PYTHAG(gladiator1->get_x() - gladiator2->get_x(), gladiator1->get_y() - gladiator2->get_y()));
+				gladiator2->add_result(gladiator1->get_damaged(), 100 - gladiator2->get_health(), PYTHAG(gladiator1->get_x() - gladiator2->get_x(), gladiator1->get_y() - gladiator2->get_y()));
 				gladiator1->close_display();
 				gladiator2->close_display();
 				ui_state = NEAT_MENU;
