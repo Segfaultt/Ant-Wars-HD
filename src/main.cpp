@@ -29,7 +29,7 @@ int seed = time(NULL);
 int innovation_number;
 int neuron_id;
 int ant_id;
-const int no_of_matches = 10;
+const int no_of_matches = 2;
 
 bool quit = false; //looping flag
 
@@ -46,7 +46,8 @@ enum ui {
 	TWO_PLAYER_GAME,
 	GAME_OVER,
 	NEAT_MENU,
-	NEAT_GAME
+	NEAT_GAME,
+	NEAT_AI_GAME
 };
 
 void add_new_score(unsigned int score, std::fstream& file, ant_type type)
@@ -345,6 +346,29 @@ int main()
 				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 				delete first_ancestor;
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_4) {
+				kill_count = 0;
+				kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
+
+				SDL_SetWindowSize(window, 1, 1);
+				ui_state = NEAT_AI_GAME;
+				neuron_id = 20;
+				innovation_number = 0;
+				ant_id = 0;
+				generation = 1;
+				match_of_generation = -1;
+				population.clear();
+				neat_ant *first_ancestor = new neat_ant(ARC, 0, 0);
+				first_ancestor->set_as_starter();
+				for (int i = 0; i < 100; i++)
+					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
+				delete first_ancestor;
+				gladiator1 = population[0];
+				bots.push_back(new bot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, gladiator1));
+				gladiator1->set_other_ants({bots[0]->get_base()});
+				gladiator1->reset();
+				gladiator1->set_position(100, SCREEN_HEIGHT/2);
+				ticks_left = 2000;
 			} else if (ui_state == NEAT_MENU && e.key.keysym.sym == SDLK_0) {
 				matches_to_do = 999999999;
 				SDL_SetWindowSize(window, 1, 1);
@@ -731,10 +755,103 @@ int main()
 					SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 				}
 			}
+		} else if (ui_state == NEAT_AI_GAME) {
+			gladiator1->tick();
+			if (gladiator1->get_health() <= 99.9)
+				gladiator1->damage(-0.04);
+			for (bot *i : bots) {
+				i->tick();
+			}
+			kill_count_texture.render((SCREEN_WIDTH - kill_count_texture.get_width())/2, SCREEN_HEIGHT - kill_count_texture.get_height() - 5);
+			generation_counter.render((SCREEN_WIDTH - generation_counter.get_width())/2, 50);
+
+			for (int i = 0; i < bots.size(); i++) {
+				ant *base_ant = bots[i]->get_base();
+				if (base_ant != NULL) {
+					base_ant->check_edge();
+					if (!base_ant->is_alive()) {
+						bots.erase(bots.begin() + i);
+						i = 0;
+
+						//replacement ants
+						bots.push_back(new bot(0, SCREEN_HEIGHT, gladiator1));
+						bots.push_back(new bot(SCREEN_WIDTH, SCREEN_HEIGHT, gladiator1));
+						gladiator1->set_other_ants([bots](){std::vector<ant *> bases; for (bot *i : bots) bases.push_back(i->get_base()); return bases;}());
+
+						//kill count
+						kill_count++;
+						//kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
+					}
+				}
+			}
+			if (ticks_left-- <= 0 || !gladiator1->is_alive()) {
+				//sum alive bots damage
+				double damage_sum = 0;
+				for (bot *i : bots)
+					damage_sum += 50-i->get_base()->get_health();
+				gladiator1->add_result(50*kill_count + damage_sum, 100 - gladiator1->get_health(), 0);
+				gladiator1->close_display();
+				gladiator1 = NULL;
+				match_of_generation++;
+				if (match_of_generation >= no_of_matches * population.size()) {//1000 matches per generation at least 10 matches per ant. 20 matches average
+					//prepare for next generation
+					generation++;
+					match_of_generation = 0;
+					//sort based on fittness (fitter first)
+					std::sort(population.begin(), population.end(), [population](neat_ant *a, neat_ant *b){return compare_ants(a,b,population);});
+
+					//get survivors
+					const int divisor = 4;
+					std::vector<neat_ant *>::const_iterator last = population.begin() + population.size()/divisor;
+					std::vector<neat_ant *>::const_iterator first = population.begin();
+					std::vector<neat_ant *> survivors(first, last);
+
+					//breed survivors
+					std::vector<neat_ant *> new_population;
+					for (neat_ant *father : survivors) {
+						int count = divisor;
+						for (int i = 0; i < population.size() && count > 0; i++) {
+							if (same_species(population[i], father)) {
+								count--;
+								new_population.push_back(&cross_over(*father, *population[i]));
+							}
+						}
+
+						//small species have to asexually reproduce
+						while (count > 0) {
+							count--;
+							new_population.push_back(&cross_over(*father, *father));
+						}
+					}
+					std::cout << population.size() << '\t' << new_population.size();
+					//kill old ants
+					survivors.clear();
+					for (neat_ant *i : population)
+						delete i;
+					population = new_population;
+					new_population.clear();
+				}
+
+				generation_counter.load_text("Generation: " + std::to_string(generation) + "-" + std::to_string(match_of_generation), {0xff, 0xff, 0xff}, "res/default/Cousine-Regular.ttf", 20);
+				matches_to_do--;
+
+				for (bot *i : bots)
+					delete i;
+				bots.clear();
+
+				gladiator1 = population[floor(match_of_generation/no_of_matches)];
+				gladiator1->set_position(100, SCREEN_HEIGHT/2);
+				bots.push_back(new bot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, gladiator1));
+				gladiator1->set_other_ants({bots[0]->get_base()});
+				gladiator1->reset();
+				kill_count = 0;
+				ticks_left = 2000;
+			}
 		}
 
+
 		//frame cap
-		if (ui_state != NEAT_GAME) {
+		if (ui_state != NEAT_GAME && ui_state != NEAT_AI_GAME) {
 			if (fps_timer.get_time() > 1000) {
 				fps = frames/(fps_timer.get_time() / 1000);
 				//fps count
