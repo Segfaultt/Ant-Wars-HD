@@ -1,4 +1,4 @@
-CC = g++
+CC = g++ -g
 
 COMPILER_FLAGS = -w -std=c++11 -DRES_PACK='"default"'
 

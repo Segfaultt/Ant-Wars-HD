@@ -355,15 +355,18 @@ void ant::apply_physics()
 
 
 	//friction/air resistance
-	velocity[0] += abs(velocity[0])/velocity[0] * -0.5 / mass;
-	velocity[1] += abs(velocity[1])/velocity[1] * -0.5 / mass;
-	angular_momentum += abs(angular_momentum)/angular_momentum * -0.6 / mass;
-	if (abs(velocity[0]) < 0.0001)
+	if (abs(velocity[0]) <= 0.0001)
 		velocity[0] = 0;
-	if (abs(velocity[1]) < 0.0001)
+	else
+		velocity[0] += abs(velocity[0])/velocity[0] * -0.5 / mass;
+	if (abs(velocity[1]) <= 0.0001)
 		velocity[1] = 0; 
+	else
+		velocity[1] += abs(velocity[1])/velocity[1] * -0.5 / mass;
 	if (abs(angular_momentum) < 0.0001)
 		angular_momentum = 0;
+	else
+		angular_momentum += abs(angular_momentum)/angular_momentum * -0.6 / mass;
 
 	//ants repel
 	double distance;
