@@ -5,6 +5,13 @@
 #define ONE_EIGHTY_OVER_PI 57.29578
 #define PYTHAG(a, b) sqrt(pow(a, 2) + pow(b, 2))
 #define ANT_REPEL_FORCE 1
+int sign(auto x)
+{
+	if (x < 0)
+		return -1;
+	else
+		return 1;
+}
 
 //=====ANT=====
 ant::ant(ant_type type_, int starting_x, int starting_y)
@@ -301,8 +308,8 @@ void ant::render()
 
 void ant::apply_force(double x_component, double y_component)
 {
-	velocity[0] += x_component/mass;
-	velocity[1] += y_component/mass;
+	velocity[0] += 10*x_component/mass;
+	velocity[1] += 10*y_component/mass;
 }
 
 void ant::apply_physics()
@@ -355,14 +362,9 @@ void ant::apply_physics()
 
 
 	//friction/air resistance
-	if (abs(velocity[0]) <= 0.0001)
-		velocity[0] = 0;
-	else
-		velocity[0] += abs(velocity[0])/velocity[0] * -0.5 / mass;
-	if (abs(velocity[1]) <= 0.0001)
-		velocity[1] = 0; 
-	else
-		velocity[1] += abs(velocity[1])/velocity[1] * -0.5 / mass;
+	double drag = 180/(200+sqrt(mass)*PYTHAG(velocity[0], velocity[1]));
+	velocity[0] *= drag;
+	velocity[1] *= drag;
 	if (abs(angular_momentum) < 0.0001)
 		angular_momentum = 0;
 	else
@@ -372,7 +374,7 @@ void ant::apply_physics()
 	double distance;
 	for (ant *i : other_ants) {
 		distance = sqrt(pow(i->get_x() - x, 2) + pow(i->get_y() - y, 2));
-		if (distance < 50) {
+		if (distance < 50 && distance != 0) {
 			velocity[0] -= ANT_REPEL_FORCE * (i->get_x() - x)/distance;
 			velocity[1] -= ANT_REPEL_FORCE * (i->get_y() - y)/distance;
 		}
@@ -453,6 +455,7 @@ double ant::damage(double damage)
 		non_edge_damage += damage;
 		if (type != MATT && type != SQUID)
 			mass -= damage/150;
+		mass = std::max(10.0, mass);
 	}
 	if (health < 0) {
 		alive = false;
@@ -477,10 +480,11 @@ void ant::ability()
 {
 	switch (type) {
 		case LUCA:
-			if (stamina > 75) {
+			if (stamina > 75 && health > 35) {
 				black_hole *hole = new black_hole(x, y, angle);
 				holes.push_back(hole);
 				stamina -= 75;
+				damage(35);
 			}
 			break;
 
@@ -577,8 +581,8 @@ void ant::nip()
 				double magnitude = PYTHAG(x - i->get_x(), y - i->get_y());
 				double x_component_unit_vector = (x - i->get_x()) / magnitude;
 				double y_component_unit_vector = (y - i->get_y()) / magnitude;
-				const double push_force = -10;
-				i->apply_force(push_force * x_component_unit_vector, push_force * y_component_unit_vector);
+				const double push_force = (-30 - stamina);
+				i->apply_force(push_force * x_component_unit_vector + velocity[0], push_force * y_component_unit_vector + velocity[1]);
 
 			}
 		}

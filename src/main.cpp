@@ -15,6 +15,8 @@
 #include <SDL2/SDL_ttf.h>
 #endif
 
+//#define JOYSTICK
+
 //screen dimensions
 #define SCREEN_WIDTH 1366
 #define SCREEN_HEIGHT 768
@@ -346,7 +348,7 @@ int main()
 				for (int i = 0; i < 100; i++)
 					population.push_back(&cross_over(*first_ancestor, *first_ancestor));
 				delete first_ancestor;
-			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_4) {
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_o) {
 				kill_count = 0;
 				kill_count_texture.load_text(std::to_string(kill_count), {0xff, 0x22, 0x22}, "res/default/Cousine-Regular.ttf", 40);
 
@@ -400,7 +402,11 @@ int main()
 				gladiator1->display_brain();
 			} else if (ui_state == NEAT_GAME && e.key.keysym.sym == SDLK_r) {
 				gladiator2->display_brain();
+#ifdef JOYSTICK
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_e) {
+#else
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_0) {
+#endif
 				if (right_ant_type_timer <= 0) {
 					switch (right_ant_type) {
 						case YA_BOY:
@@ -453,7 +459,11 @@ int main()
 					}
 					right_ant_type_timer = TICKS_PER_FRAME/2;
 				}
+#ifdef JOYSTICK
+			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_z) {
+#else
 			} else if (ui_state == MENU && e.key.keysym.sym == SDLK_9) {
+#endif
 				if (left_ant_type_timer <= 0) {
 					switch (left_ant_type) {
 						case YA_BOY:
@@ -506,7 +516,20 @@ int main()
 					}
 					left_ant_type_timer = TICKS_PER_FRAME/2;
 				}
-
+#ifdef JOYSTICK
+			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_6) {
+				right_ant->ability();
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_5) {
+				left_ant->ability();
+			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_RIGHTBRACKET) {
+				right_ant->nip();
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_c) {
+				left_ant->nip();
+#else
+			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_j) {
+				right_ant->flip();
+			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_b) {
+				left_ant->flip();
 			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_k) {
 				right_ant->ability();
 			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_v) {
@@ -515,10 +538,7 @@ int main()
 				right_ant->nip();
 			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_c) {
 				left_ant->nip();
-			} else if (right_ant != NULL && e.key.keysym.sym == SDLK_j) {
-				right_ant->flip();
-			} else if (left_ant != NULL && e.key.keysym.sym == SDLK_b) {
-				left_ant->flip();
+#endif
 			} else if (ui_state == GAME_OVER && e.key.keysym.sym == SDLK_SPACE) {
 				ui_state = MENU;
 			}
@@ -526,6 +546,27 @@ int main()
 		const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
 		if (ui_state == TWO_PLAYER_GAME) {
+#ifdef JOYSTICK
+			//right ant control
+			if (currentKeyStates[SDL_SCANCODE_D])
+				right_ant->move(LEFT);
+			if (currentKeyStates[SDL_SCANCODE_R])
+				right_ant->move(FORWARDS);
+			if (currentKeyStates[SDL_SCANCODE_G])
+				right_ant->move(RIGHT);
+			if (currentKeyStates[SDL_SCANCODE_F])
+				right_ant->move(BACKWARDS);
+
+			//left ant control
+			if (currentKeyStates[92])
+				left_ant->move(LEFT);
+			if (currentKeyStates[96])
+				left_ant->move(FORWARDS);
+			if (currentKeyStates[94])
+				left_ant->move(RIGHT);
+			if (currentKeyStates[90])
+				left_ant->move(BACKWARDS);
+#else
 			//right ant control
 			if (currentKeyStates[SDL_SCANCODE_LEFT])
 				right_ant->move(LEFT);
@@ -545,6 +586,7 @@ int main()
 				left_ant->move(RIGHT);
 			if (currentKeyStates[SDL_SCANCODE_S])
 				left_ant->move(BACKWARDS);
+#endif
 		} else if (ui_state == ONE_PLAYER_GAME) {
 			//right ant control
 			if (currentKeyStates[SDL_SCANCODE_LEFT])
